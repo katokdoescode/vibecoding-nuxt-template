@@ -13,6 +13,9 @@ export default defineNuxtConfig({
   ],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
+  runtimeConfig: {
+    openaiApiKey: process.env.OPENAI_API_KEY,
+  },
   compatibilityDate: '2025-05-15',
   eslint: {
     config: {
