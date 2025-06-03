@@ -28,8 +28,7 @@
         </UButton>
       </template>
     </div>
-    <AuthDialog v-if="dialogOpen" :open="dialogOpen" :mode="dialogMode" @update:open="dialogOpen = $event"
-      @update:mode="dialogMode = $event" />
+    <AuthDialog />
   </header>
 </template>
 
@@ -37,15 +36,15 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import type { User } from '@supabase/supabase-js';
 import { useSupabaseClient } from '#imports';
+import { useAuthDialog } from '~/composables/useAuthDialog';
 
-const dialogOpen = ref(false);
-const dialogMode = ref<'signIn' | 'signUp'>('signIn');
 const user = ref<User | null>(null);
 const supabase = useSupabaseClient();
+const { setOpen, setMode } = useAuthDialog();
 
 function openDialog(mode: 'signIn' | 'signUp') {
-  dialogMode.value = mode;
-  dialogOpen.value = true;
+  setMode(mode);
+  setOpen(true);
 }
 
 async function fetchUser() {

@@ -3,6 +3,8 @@
     <UCard class="max-w-lg w-full p-8 flex flex-col items-center gap-4 shadow-lg bg-white/80 dark:bg-gray-900/80">
       <h1 class="text-4xl font-extrabold text-primary">MuteTutor</h1>
       <p class="text-lg text-gray-700 dark:text-gray-300">Your cozy space to learn, practice, and grow in silence.</p>
+
+      <UButton color="primary" size="lg" class="mt-4" @click="openAuthDialog('signUp')">Get Started</UButton>
     </UCard>
   </UContainer>
 
@@ -63,12 +65,23 @@
     <UCard class="bg-primary/90 text-white">
       <div class="max-w-xl w-full p-8 flex flex-col items-center gap-4">
         <h3 class="text-2xl font-bold">Ready to start your silent learning journey?</h3>
+
+        <UButton color="primary" size="lg" class="mt-4" @click="openAuthDialog('signUp')">Get Started</UButton>
       </div>
     </UCard>
   </UContainer>
 </template>
 <script setup lang="ts">
+import { useAuthDialog } from '~/composables/useAuthDialog';
+
 definePageMeta({
   layout: 'default',
 })
+
+const { setOpen, setMode } = useAuthDialog();
+
+const openAuthDialog = (mode: 'signIn' | 'signUp') => {
+  setOpen(true);
+  setMode(mode);
+}
 </script>

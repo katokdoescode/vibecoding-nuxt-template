@@ -32,18 +32,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineProps, defineEmits } from 'vue';
+import { ref } from 'vue';
 import { useSupabaseClient } from '#imports';
+import { useAuthDialog } from '~/composables/useAuthDialog';
 
-const props = defineProps<{ open: boolean; mode?: 'signIn' | 'signUp' }>();
-const emit = defineEmits(['update:open', 'update:mode']);
-
-const mode = ref<'signIn' | 'signUp'>(props.mode || 'signIn');
-
-watch(() => props.mode, (v) => {
-  if (v) mode.value = v;
-});
-watch(mode, v => emit('update:mode', v));
+const { open, mode, setOpen } = useAuthDialog();
 
 const email = ref('');
 const password = ref('');
@@ -53,11 +46,11 @@ const error = ref('');
 const supabase = useSupabaseClient();
 
 function onDialogUpdate(val: boolean) {
-  emit('update:open', val);
+  setOpen(val);
 }
 
 function close() {
-  emit('update:open', false);
+  setOpen(false);
   error.value = '';
   email.value = '';
   password.value = '';
