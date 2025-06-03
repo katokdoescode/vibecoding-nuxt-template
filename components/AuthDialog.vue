@@ -1,5 +1,11 @@
 <template>
-  <UModal :title="mode === 'signIn' ? 'Sign In' : 'Sign Up'" :open="open" @update:open="onDialogUpdate">
+  <UModal :title="mode === 'signIn' ? 'Sign In' : 'Sign Up'" :open="open" @update:open="onDialogUpdate"
+    aria-describedby="auth-dialog-description">
+    <template #description>
+      <p id="auth-dialog-description">
+        {{ mode === 'signIn' ? 'Sign in to your account' : 'Create a new account' }}
+      </p>
+    </template>
     <template #body>
       <div class="flex flex-col gap-4">
         <UInput v-model="email" placeholder="Email" type="email" class="w-full" />
@@ -36,7 +42,6 @@ const mode = ref<'signIn' | 'signUp'>(props.mode || 'signIn');
 
 watch(() => props.mode, (v) => {
   if (v) mode.value = v;
-  console.log(mode.value);
 });
 watch(mode, v => emit('update:mode', v));
 

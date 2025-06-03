@@ -29,4 +29,7 @@ export default defineNuxtConfig({
       dir: '~/assets/icons',
     }],
   },
+  supabase: {
+    redirect: false,
+  },
 });

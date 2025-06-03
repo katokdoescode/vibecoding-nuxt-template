@@ -1,11 +1,20 @@
 <template>
-  <header class="w-full flex items-center justify-between px-4 py-2 bg-white shadow-sm">
+  <header class="w-full flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 shadow-sm">
     <NuxtLink to="/" class="text-lg font-bold">
       MuteTutor
     </NuxtLink>
+    <nav class="flex gap-2 items-center">
+      <NuxtLink to="/" class="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
+        Home
+      </NuxtLink>
+      <NuxtLink v-if="user" to="/dashboard"
+        class="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
+        Dashboard
+      </NuxtLink>
+    </nav>
     <div class="flex gap-2 items-center">
       <template v-if="user">
-        <span class="text-sm text-gray-700">{{ user.email }}</span>
+        <span class="text-sm text-gray-700 dark:text-gray-300">{{ user.email }}</span>
         <UButton color="primary" variant="outline" @click="signOut">
           Sign Out
         </UButton>
@@ -57,6 +66,8 @@ onMounted(async () => {
   });
 });
 onUnmounted(() => {
-  listener?.subscription.unsubscribe();
+  if (listener && listener.subscription && typeof listener.subscription.unsubscribe === 'function') {
+    listener.subscription.unsubscribe();
+  }
 });
 </script>
