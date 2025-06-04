@@ -1,16 +1,15 @@
 <template>
   <header class="w-full flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 shadow-sm">
-    <NuxtLink to="/" class="text-lg font-bold">
-      MuteTutor
-    </NuxtLink>
+    <ULink to="/" class="text-lg font-bold">
+      Brand Name
+    </ULink>
     <nav class="flex gap-2 items-center">
-      <NuxtLink to="/" class="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
+      <ULink to="/">
         Home
-      </NuxtLink>
-      <NuxtLink v-if="user" to="/dashboard"
-        class="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
+      </ULink>
+      <ULink v-if="user" to="/dashboard">
         Dashboard
-      </NuxtLink>
+      </ULink>
     </nav>
     <div class="flex gap-2 items-center">
       <template v-if="user">

@@ -1,7 +1,7 @@
 <template>
   <UContainer class="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
     <UCard class="max-w-lg w-full p-8 flex flex-col items-center gap-4 shadow-lg bg-white/80 dark:bg-gray-900/80">
-      <h1 class="text-4xl font-extrabold text-primary">MuteTutor</h1>
+      <h1 class="text-4xl font-extrabold text-primary">Brand Name</h1>
       <p class="text-lg text-gray-700 dark:text-gray-300">Your cozy space to learn, practice, and grow in silence.</p>
 
       <UButton color="primary" size="lg" class="mt-4" @click="openAuthDialog('signUp')">Get Started</UButton>
