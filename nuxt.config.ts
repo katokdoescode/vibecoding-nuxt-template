@@ -3,16 +3,16 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxt/eslint',
+    '@nuxt/ui',
     '@nuxt/image',
     '@nuxt/fonts',
     '@nuxt/scripts',
     '@nuxtjs/supabase',
     '@nuxtjs/tailwindcss',
     'nuxt-mcp',
-    'shadcn-nuxt',
   ],
   devtools: { enabled: true },
-  css: ['~/assets/css/tailwind.css'],
+  css: ['~/assets/css/main.css'],
   runtimeConfig: {
     openaiApiKey: process.env.OPENAI_API_KEY,
   },
@@ -26,8 +26,11 @@ export default defineNuxtConfig({
       },
     },
   },
-  shadcn: {
-    prefix: 'U',
+  icon: {
+    customCollections: [{
+      prefix: 'custom',
+      dir: '~/assets/icons',
+    }],
   },
   supabase: {
     redirect: false,
