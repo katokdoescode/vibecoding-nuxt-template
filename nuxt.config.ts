@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from '@tailwindcss/vite';
+
 export default defineNuxtConfig({
 
   modules: [
@@ -7,7 +9,6 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     '@nuxt/scripts',
     '@nuxtjs/supabase',
-    '@nuxtjs/tailwindcss',
     'nuxt-mcp',
     'shadcn-nuxt',
   ],
@@ -17,6 +18,11 @@ export default defineNuxtConfig({
     openaiApiKey: process.env.OPENAI_API_KEY,
   },
   compatibilityDate: '2025-05-15',
+  vite: {
+    plugins: [
+      tailwindcss(),
+    ],
+  },
   eslint: {
     config: {
       stylistic: {

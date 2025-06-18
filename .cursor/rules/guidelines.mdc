@@ -1,0 +1,72 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Developer Guidelines for project
+
+## Tech Stack
+- **Nuxt 3** (Vue 3, TypeScript)
+- **Supabase** (auth, backend)
+- **OpenAI API** (AI features)
+- **Tailwind CSS v4** (utility-first styling)
+- **ShadCN Vue** (UI components)
+- **ESLint** (linting)
+- **Lefthook** (git hooks)
+
+## Project Structure
+- `components/` — UI components (use ShadCN Vue components, Tailwind for styling)
+- `components/ui` - Installed ShadCN components
+- `composables/` — Reusable logic (Vue composables)
+- `layouts/` — App layouts (e.g., `default.vue`, `authorized.vue`)
+- `middleware/` — Route guards (e.g., `auth.ts`)
+- `pages/` — App pages (auto-routed)
+- `server/api/` — API endpoints (server-side)
+- `server/utils/` — Server utilities
+- `assets/` — Static assets (css, icons)
+- `public/` — Public static files
+
+## Organization & Conventions
+- Use **ShadCN Vue** components instead of native HTML when available.
+- Style only with **Tailwind CSS** classes (no custom CSS unless necessary).
+- All components must be adaptive to all screen sizes (no breakpoints needed).
+- Remove unused variables and imports.
+- Use composables for shared logic.
+- Keep code modular and maintain a simple layered architecture.
+- Use Supabase for all backend/auth needs.
+- Never use `any`, `as`, or `as any` in TypeScript.
+
+## Scripts
+- `npm run dev` — Start development server
+- `npm run build` — Build for production
+- `npm run preview` — Preview production build
+- `npm run lint` — Auto-fix lint issues
+
+## Testing
+- No explicit test setup yet. Use `npm run lint` and pre-commit hooks for code quality.
+- Pre-commit: ESLint auto-fix runs on staged files (see `lefthook.yml`).
+
+## Best Practices
+- Follow Nuxt and Vue conventions.
+- Use environment variables via `.env` (see `.env.example`).
+- Keep UI/UX clean, modern, and accessible.
+- Use only the packages listed in `package.json`.
+- Refer to [ShadCN Vue docs](mdc:https:/ui.nuxt.com) for UI components.
+- For deployment, see [Nuxt deployment docs](mdc:https:/nuxt.com/docs/getting-started/deployment).
+
+## Protected API routes
+
+To protect API routes, use `requireAuth` guard.
+
+Example to protect your api endpoint:
+
+```TypeScript
+import { requireAuth } from '~/server/utils/requireAuth';
+
+export default defineEventHandler(async (event) => {
+  const user = await requireAuth(event);
+
+  // Now you have the authenticated user
+  return { message: `Hello, ${user.email}` };
+});
+```
