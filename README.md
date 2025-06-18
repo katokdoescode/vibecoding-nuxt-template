@@ -7,7 +7,7 @@ Key features:
 - Built with Nuxt for a powerful, flexible, and scalable frontend.
 - Supabase integration for authentication, database, and backend services.
 - Ready-to-use AI capabilities via the OpenAI API.
-- Pre-configured with Tailwind CSS v4 and Nuxt UI components for fast, beautiful, and adaptive UI development.
+- Pre-configured with Tailwind CSS v4 and Shadcn UI components for fast, beautiful, and adaptive UI development.
 - Follows best practices and a simple layered architecture for maintainability and scalability.
 
 Use this template to kickstart your next AI-powered web application with minimal setup and maximum productivity.
