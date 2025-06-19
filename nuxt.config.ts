@@ -12,6 +12,7 @@ export default defineNuxtConfig({
 		'nuxt-mcp',
 		'shadcn-nuxt',
 		'@nuxt/icon',
+		'@nuxtjs/mdc',
 	],
 	devtools: { enabled: true },
 	css: ['~/assets/css/tailwind.css'],

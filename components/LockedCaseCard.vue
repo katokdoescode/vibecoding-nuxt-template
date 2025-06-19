@@ -1,18 +1,18 @@
 <template>
-	<Card class="h-full flex flex-col opacity-60 border-dashed border-2 border-muted-foreground/30 bg-muted/20">
-		<CardHeader class="pb-3">
+	<UCard class="h-full flex flex-col opacity-60 border-dashed border-2 border-muted-foreground/30 bg-muted/20">
+		<UCardHeader class="pb-3">
 			<div class="flex items-start justify-between mb-3">
-				<Badge
+				<UBadge
 					variant="secondary"
 					class="text-xs font-medium"
 				>
 					Locked
-				</Badge>
+				</UBadge>
 				<span class="text-xs text-muted-foreground font-medium">
 					{{ index + 1 }}/9
 				</span>
 			</div>
-			<CardTitle class="text-lg font-semibold leading-tight mb-2 flex items-start gap-2">
+			<UCardTitle class="text-lg font-semibold leading-tight mb-2 flex items-start gap-2">
 				<Icon
 					name="lucide:lock"
 					class="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5"
@@ -20,12 +20,12 @@
 				<span class="text-muted-foreground">
 					{{ title || `Case ${index + 1}` }}
 				</span>
-			</CardTitle>
-			<CardDescription class="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+			</UCardTitle>
+			<UCardDescription class="text-sm text-muted-foreground leading-relaxed line-clamp-3">
 				{{ description || 'Complete previous cases to unlock this challenge.' }}
-			</CardDescription>
-		</CardHeader>
-		<CardFooter class="pt-0 mt-auto">
+			</UCardDescription>
+		</UCardHeader>
+		<UCardFooter class="pt-0 mt-auto">
 			<div class="flex items-center text-xs text-muted-foreground">
 				<Icon
 					name="lucide:lock"
@@ -33,20 +33,11 @@
 				/>
 				<span class="font-medium">Locked</span>
 			</div>
-		</CardFooter>
-	</Card>
+		</UCardFooter>
+	</UCard>
 </template>
 
 <script setup lang="ts">
-import {
-	Card,
-	CardHeader,
-	CardTitle,
-	CardDescription,
-	CardFooter,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-
 interface Props {
 	index: number;
 	title?: string | null;

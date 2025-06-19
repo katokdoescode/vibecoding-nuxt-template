@@ -40,8 +40,9 @@ export type Database = {
 					created_at: string;
 					criteria_outcomes: Json | null;
 					description: string | null;
-					dificulty: number | null;
+					difficulty: number | null;
 					id: string;
+					slug: string;
 					story: string | null;
 					title: string | null;
 				};
@@ -51,8 +52,9 @@ export type Database = {
 					created_at?: string;
 					criteria_outcomes?: Json | null;
 					description?: string | null;
-					dificulty?: number | null;
+					difficulty?: number | null;
 					id?: string;
+					slug?: string;
 					story?: string | null;
 					title?: string | null;
 				};
@@ -62,8 +64,9 @@ export type Database = {
 					created_at?: string;
 					criteria_outcomes?: Json | null;
 					description?: string | null;
-					dificulty?: number | null;
+					difficulty?: number | null;
 					id?: string;
+					slug?: string;
 					story?: string | null;
 					title?: string | null;
 				};

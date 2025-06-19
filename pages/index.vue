@@ -98,7 +98,7 @@ const orderedCases = computed(() => {
 			id: '',
 			title: null,
 			description: null,
-			dificulty: null,
+			difficulty: null,
 			can_be_done_after: null,
 			agent: null,
 			story: null,
