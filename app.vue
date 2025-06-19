@@ -1,7 +1,7 @@
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+	<NuxtLayout>
+		<NuxtPage />
+	</NuxtLayout>
 </template>
 
 <script setup lang="ts">
@@ -13,7 +13,7 @@ const { data: { user: userData } } = await supabase.auth.getUser();
 const { user, data: userAppData } = await useUser(userData);
 
 onMounted(() => {
-  console.info('User:', user.value);
-  console.info('User App Data:', userAppData.value);
+	console.info('User:', user.value);
+	console.info('User App Data:', userAppData.value);
 });
 </script>

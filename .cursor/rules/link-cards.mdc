@@ -1,0 +1,101 @@
+---
+description: While creating cards that must be links
+globs:
+alwaysApply: false
+---
+# 🧭 Semantic Card-Link Guide for Nuxt (Vue 3) using shadcn-vue + Tailwind CSS
+
+This guide provides context for an LLM embedded in an IDE to generate **semantic, fully-clickable cards** using `shadcn-vue` componentst follows accessibility and semantic best practices based on [Easy Semantic Card-Link](https://ru.ariarzer.dev/tutorials/2022/easy-semantic-card-link.html).
+
+---
+
+## ✅ Goal
+
+- Use semantic markup (`<article>`, `<h3>`)
+- Wrap the title in a single `<a>` tag that activates the entire card
+- Use CSS pseudo-elements (`::before`) for full-area interactivity
+- Allow nested independent links (e.g., author link)
+- Use `shadcn-vue` card components for structure
+- Style using Tailwind CSS utility classes
+
+---
+
+## 📦 Vue 3 Component Template
+
+```vue
+<template>
+  <Card class="relative z-0 overflow-hidden transition-colors hover:bg-muted/50">
+    <CardHeader>
+      <CardTitle as="h3">
+        <CardAction
+          tag="a"
+          :href="mainUrl"
+          class="relative inline-block z-0 card-action text-primary hover:underline focus:underline"
+        >
+          {{ title }}
+        </CardAction>
+      </CardTitle>
+      <CardDescription class="pointer-events-none">
+        {{ description }}
+      </CardDescription>
+    </CardHeader>
+
+    <CardContent>
+      <img :src="imageUrl" :alt="imageAlt" class="w-full rounded-lg pointer-events-none" />
+    </CardContent>
+
+    <CardFooter>
+      <a
+        :href="authorUrl"
+        class="relative z-10 text-xs text-muted-foreground hover:underline"
+      >
+        By {{ authorName }}
+      </a>
+    </CardFooter>
+  </Card>
+</template>
+
+<script setup lang="ts">
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+  CardAction,
+} from '@/components/ui/card';
+
+defineProps({
+  mainUrl: String,
+  title: String,
+  description: String,
+  imageUrl: String,
+  imageAlt: String,
+  authorUrl: String,
+  authorName: String,
+});
+</script>
+
+<style scoped>
+.card-action::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  top: -1rem;
+  left: -1rem;
+  right: -1rem;
+  bottom: -1rem;
+  z-index: -1;
+}
+</style>
+```
+
+---
+
+## 🧪 Notes
+
+- `Card` (semantic wrapper) acts like `<article>`
+- `CardAction` overlays clickable area using `::before`
+- Nested `<a>` (e.g., author) stays above via `z-index`
+- Images and text do not interfere with pointer behavior

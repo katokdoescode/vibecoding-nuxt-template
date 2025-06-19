@@ -1,5 +1,8 @@
 <template>
-  <div class="flex flex-col gap-4">
-    <main><slot /></main>
-  </div>
+	<div class="min-h-screen bg-background">
+		<AppSidebar />
+		<main class="container mx-auto px-4 py-8">
+			<slot />
+		</main>
+	</div>
 </template>

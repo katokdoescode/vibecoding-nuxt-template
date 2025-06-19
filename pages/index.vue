@@ -1,34 +1,122 @@
 <template>
-  <div>
-    <h1 class="text-2xl font-bold">
-      Study Cases
-    </h1>
-    <div v-if="cases">
-      <ul v-if="cases.length > 0">
-        <li
-          v-for="caseItem in cases"
-          :key="caseItem.id"
-        >
-          <h2 class="text-lg font-bold">
-            {{ caseItem.title }}
-          </h2>
-          <p class="text-sm text-gray-500">
-            {{ caseItem.description }}
-          </p>
-        </li>
-      </ul>
-      <p v-else>
-        No cases found
-      </p>
-    </div>
-    <div v-else>
-      <p>Loading...</p>
-    </div>
-  </div>
+	<div>
+		<div class="text-center mb-12">
+			<h1 class="text-4xl font-bold tracking-tight mb-4">
+				Study Cases
+			</h1>
+			<p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+				Master your skills through interactive role-playing scenarios. Complete cases in order to unlock new challenges.
+			</p>
+		</div>
+
+		<!-- Cases Grid -->
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+			<div
+				v-for="(caseItem, index) in orderedCases"
+				:key="caseItem.id || `placeholder-${index}`"
+				class="relative"
+			>
+				<!-- Available Case -->
+				<CaseCard
+					v-if="caseItem.id && caseItem.isAvailable"
+					:case-item="caseItem"
+					:index="index"
+				/>
+
+				<!-- Locked Case -->
+				<LockedCaseCard
+					v-else
+					:index="index"
+					:title="caseItem.title"
+					:description="caseItem.description"
+				/>
+			</div>
+		</div>
+
+		<!-- Loading State -->
+		<div
+			v-if="pending"
+			class="text-center py-12"
+		>
+			<div class="inline-flex items-center space-x-2">
+				<svg
+					class="animate-spin h-5 w-5"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+					/>
+				</svg>
+				<span>Loading cases...</span>
+			</div>
+		</div>
+	</div>
 </template>
 
 <script setup lang="ts">
 import type { Case } from '~/server/types';
+import CaseCard from '@/components/CaseCard.vue';
+import LockedCaseCard from '@/components/LockedCaseCard.vue';
 
-const { data: cases } = await useAsyncData('cases', () => $fetch<Case[]>('/api/cases'));
+definePageMeta({
+	layout: 'default',
+});
+
+// Fetch cases
+const { data: cases, pending } = await useAsyncData('cases', () => {
+	return $fetch<Case[]>('/api/cases');
+});
+
+// Create ordered cases array (9 total, with dependencies resolved)
+const orderedCases = computed(() => {
+	const result: Array<Case & { isAvailable: boolean }> = [];
+	const caseMap = new Map<string, Case>();
+
+	// Create map of available cases
+	if (cases.value) {
+		cases.value.forEach(c => caseMap.set(c.id, c));
+	}
+
+	// Find root cases (no dependencies)
+	const rootCases = cases.value?.filter(c => !c.can_be_done_after) || [];
+	const processedIds = new Set<string>();
+
+	// Add cases in dependency order
+	const addCaseAndDependents = (caseItem: Case) => {
+		if (processedIds.has(caseItem.id)) return;
+
+		result.push({ ...caseItem, isAvailable: true });
+		processedIds.add(caseItem.id);
+
+		// Find dependent cases
+		const dependents = cases.value?.filter(c => c.can_be_done_after === caseItem.id) || [];
+		dependents.forEach(addCaseAndDependents);
+	};
+
+	// Process root cases first
+	rootCases.forEach(addCaseAndDependents);
+
+	// Fill remaining slots with placeholder locked cases
+	while (result.length < 9) {
+		result.push({
+			id: '',
+			title: null,
+			description: null,
+			dificulty: null,
+			can_be_done_after: null,
+			agent: null,
+			story: null,
+			criteria_outcomes: null,
+			created_at: '',
+			isAvailable: false,
+		});
+	}
+
+	return result.slice(0, 9);
+});
 </script>

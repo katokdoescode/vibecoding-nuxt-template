@@ -2,26 +2,26 @@ import { serverSupabaseClient } from '#supabase/server';
 import type { ExtendedChat } from '~/server/types';
 
 export default defineEventHandler(async (event) => {
-  const user = await requireAuth(event);
+	const user = await requireAuth(event);
 
-  const query = getQuery(event);
+	const query = getQuery(event);
 
-  const supabase = await serverSupabaseClient<{
-    chat: ExtendedChat;
-  }>(event);
+	const supabase = await serverSupabaseClient<{
+		chat: ExtendedChat;
+	}>(event);
 
-  const caseId = query.case_id?.toString();
+	const caseId = query.case_id?.toString();
 
-  if (!caseId) {
-    return null;
-  }
+	if (!caseId) {
+		return null;
+	}
 
-  const { data: chat } = await supabase
-    .from('chats')
-    .select('*, case_id(*), agent_id(*), user_id(*)')
-    .eq('user_id', user.id)
-    .eq('case_id', caseId)
-    .single();
+	const { data: chat } = await supabase
+		.from('chats')
+		.select('*, case_id(*), agent_id(*), user_id(*)')
+		.eq('user_id', user.id)
+		.eq('case_id', caseId)
+		.single();
 
-  return chat;
+	return chat;
 });
