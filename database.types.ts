@@ -9,38 +9,120 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agents: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+          prompt: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+          prompt?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+          prompt?: string | null;
+        };
+        Relationships: [];
+      };
       cases: {
         Row: {
-          can_be_done_after_case: number | null;
+          agent: string | null;
+          can_be_done_after: string | null;
           created_at: string;
+          criteria_outcomes: Json | null;
           description: string | null;
-          difficulty_level: number;
-          id: number;
+          dificulty: number | null;
+          id: string;
           story: string | null;
           title: string | null;
         };
         Insert: {
-          can_be_done_after_case?: number | null;
+          agent?: string | null;
+          can_be_done_after?: string | null;
           created_at?: string;
+          criteria_outcomes?: Json | null;
           description?: string | null;
-          difficulty_level?: number;
-          id?: number;
+          dificulty?: number | null;
+          id?: string;
           story?: string | null;
           title?: string | null;
         };
         Update: {
-          can_be_done_after_case?: number | null;
+          agent?: string | null;
+          can_be_done_after?: string | null;
           created_at?: string;
+          criteria_outcomes?: Json | null;
           description?: string | null;
-          difficulty_level?: number;
-          id?: number;
+          dificulty?: number | null;
+          id?: string;
           story?: string | null;
           title?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: 'cases_can_be_done_after_case_fkey';
-            columns: ['can_be_done_after_case'];
+            foreignKeyName: 'cases_agent_fkey';
+            columns: ['agent'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'cases_can_be_done_after_fkey';
+            columns: ['can_be_done_after'];
+            isOneToOne: false;
+            referencedRelation: 'cases';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      chats: {
+        Row: {
+          agent_id: string | null;
+          case_id: string | null;
+          created_at: string;
+          id: number;
+          learning_outcomes: Json | null;
+          messages: Json[];
+          status: string;
+          user_id: string | null;
+        };
+        Insert: {
+          agent_id?: string | null;
+          case_id?: string | null;
+          created_at?: string;
+          id?: number;
+          learning_outcomes?: Json | null;
+          messages?: Json[];
+          status?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          agent_id?: string | null;
+          case_id?: string | null;
+          created_at?: string;
+          id?: number;
+          learning_outcomes?: Json | null;
+          messages?: Json[];
+          status?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'chats_agent_id_fkey';
+            columns: ['agent_id'];
+            isOneToOne: false;
+            referencedRelation: 'agents';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chats_case_id_fkey';
+            columns: ['case_id'];
             isOneToOne: false;
             referencedRelation: 'cases';
             referencedColumns: ['id'];

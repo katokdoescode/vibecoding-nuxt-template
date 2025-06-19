@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   eslint: {
     config: {
       stylistic: {
-        indent: 2,
+        indent: 'tab',
         quotes: 'single',
         semi: true,
       },
