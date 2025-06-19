@@ -3,10 +3,10 @@
 		<UCardHeader class="pb-3">
 			<div class="flex items-start justify-between mb-3">
 				<UBadge
-					:variant="getdifficultyVariant(caseItem.difficulty)"
+					:variant="getDifficultyVariant(caseItem.difficulty)"
 					class="text-xs font-medium"
 				>
-					{{ getdifficultyLabel(caseItem.difficulty) }}
+					{{ getDifficultyLabel(caseItem.difficulty) }}
 				</UBadge>
 				<span class="text-xs text-muted-foreground font-medium">
 					{{ index + 1 }}/9
@@ -48,14 +48,14 @@ interface Props {
 defineProps<Props>();
 
 // Utility functions
-const getdifficultyVariant = (difficulty: number | null) => {
+const getDifficultyVariant = (difficulty: number | null) => {
 	if (!difficulty) return 'secondary';
 	if (difficulty <= 2) return 'default';
 	if (difficulty <= 4) return 'secondary';
 	return 'destructive';
 };
 
-const getdifficultyLabel = (difficulty: number | null) => {
+const getDifficultyLabel = (difficulty: number | null) => {
 	if (!difficulty) return 'Unknown';
 	if (difficulty <= 2) return 'Beginner';
 	if (difficulty <= 4) return 'Intermediate';
@@ -66,7 +66,7 @@ const getdifficultyLabel = (difficulty: number | null) => {
 <style scoped>
 .line-clamp-3 {
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
