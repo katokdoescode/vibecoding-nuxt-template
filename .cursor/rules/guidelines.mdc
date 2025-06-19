@@ -159,7 +159,7 @@ export default defineEventHandler(async (event) => {
 - **Never use**: `any`, `as`, or `as any`
 - **Import types**: Use `import type` for type-only imports
 - **Database Types**: Import from `~/server/types` or `~/database.types`
-- **AI Message Types**: Use `Message` and `TypedChat` for chat-related functionality
+- **AI Message Types**: Use `Message` and `Chat` for chat-related functionality
 - **Component Props**: Always define explicit Props interfaces
 - **Event Handlers**: Properly type event parameters
 - **AI Validation**: Use Zod schemas for AI endpoint input validation
@@ -216,7 +216,7 @@ export type Message = {
 };
 
 // Chat with typed messages
-export type TypedChat = Omit<Chat, 'messages'> & {
+export type Chat = Omit<Chat, 'messages'> & {
   messages: Message[];
 };
 ```
@@ -240,7 +240,7 @@ export type TypedChat = Omit<Chat, 'messages'> & {
 
 ### AI Best Practices
 - Always validate user input with Zod schemas
-- Use proper TypeScript types (`Message`, `TypedChat`)
+- Use proper TypeScript types (`Message`, `Chat`)
 - Handle AI generation errors gracefully
 - Maintain conversation context for coherent responses
 - Use appropriate temperature settings (0.7 for balanced creativity)
@@ -287,7 +287,7 @@ import { openai } from '@ai-sdk/openai'
 import { z } from 'zod'
 
 // Type-only imports (always explicit)
-import type { Message, TypedChat } from '~/server/types'
+import type { Message, Chat } from '~/server/types'
 import type { Database } from '~/database.types'
 
 // Server-side imports (in API routes)

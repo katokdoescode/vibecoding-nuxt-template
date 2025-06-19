@@ -34,29 +34,37 @@
 			<!-- Main content -->
 			<div
 				v-else-if="studyCase"
-				class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-12rem)]"
+				class="space-y-6"
 			>
-				<!-- Left side: Case story -->
-				<CaseStory
-					:study-case="studyCase"
-					:disabled="!chat || chat.status === 'submitted'"
-					:is-submitting="isSubmitting"
-					:submit-text="chat?.status === 'submitted' ? 'Submitted' : 'Submit Case'"
-					@submit="submitChat"
-				/>
+				<!-- Learning Outcomes (shown at top after assessment) -->
+				<div v-if="isAssessed(chat?.status) && chat?.learning_outcomes">
+					<LearningOutcomes :learning-outcomes="chat.learning_outcomes" />
+				</div>
 
-				<!-- Right side: Chat -->
-				<div class="flex flex-col h-full">
-					<ChatInterface
-						v-model="newMessage"
-						:agent="studyCase.agent_id"
-						:messages="chat?.messages || []"
-						:status="chat?.status || 'created'"
-						:is-typing="isTyping"
-						:disabled="chat?.status === 'submitted'"
-						:is-sending="isSending"
-						@send="sendMessage"
+				<!-- Case Story and Chat (always in 2-column layout) -->
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-12rem)]">
+					<!-- Left side: Case story -->
+					<CaseStory
+						:study-case="studyCase"
+						:disabled="!chat || isAssessed(chat.status)"
+						:is-submitting="isSubmitting"
+						:submit-text="getSubmitButtonText(chat?.status)"
+						@submit="submitChat"
 					/>
+
+					<!-- Right side: Chat Interface -->
+					<div class="flex flex-col h-full">
+						<ChatInterface
+							v-model="newMessage"
+							:agent="studyCase.agent_id"
+							:messages="chat?.messages || []"
+							:status="chat?.status || 'created'"
+							:is-typing="isTyping"
+							:disabled="isAssessed(chat?.status)"
+							:is-sending="isSending"
+							@send="sendMessage"
+						/>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -65,7 +73,7 @@
 
 <script setup lang="ts">
 import type { Database } from '~/database.types';
-import type { TypedChat } from '~/server/types';
+import type { Chat, LearningOutcomes } from '~/server/types';
 
 // Types
 interface CaseWithAgent {
@@ -83,7 +91,7 @@ interface CaseWithAgent {
 	} | null;
 }
 
-type ChatData = Pick<TypedChat, 'id' | 'status' | 'messages'>;
+type ChatData = Pick<Chat, 'id' | 'status' | 'messages' | 'learning_outcomes'>;
 
 // Page metadata
 definePageMeta({
@@ -218,25 +226,55 @@ async function sendMessage(messageText?: string) {
 	}
 }
 
-// Submit chat
+// Submit chat with comprehensive assessment
 async function submitChat() {
 	if (!chat.value || isSubmitting.value) return;
 
 	isSubmitting.value = true;
 
 	try {
-		await $fetch(`/api/chats/${chat.value.id}/status`, {
-			method: 'PATCH',
+		const result = await $fetch(`/api/chats/${chat.value.id}/submit-case`, {
+			method: 'POST',
 			body: {
-				status: 'submitted',
+				finalReflection: '', // Could be enhanced to collect user's final reflection
 			},
 		});
+
+		// Show success notification with assessment results
+		console.log('Assessment complete:', result);
+
+		// The chat will be updated through Supabase realtime subscription
+		// so the UI will automatically reflect the new status and assessment message
 	}
 	catch (error) {
-		console.error('Failed to submit chat:', error);
+		console.error('Failed to submit and assess case:', error);
+		// You might want to show an error toast/notification here
 	}
 	finally {
 		isSubmitting.value = false;
+	}
+}
+
+// Helper functions for assessment status
+function isAssessed(status?: string): boolean {
+	if (!status) return false;
+	return ['submitted', 'passed', 'can_be_improved', 'not_passed'].includes(status);
+}
+
+function getSubmitButtonText(status?: string): string {
+	if (!status) return 'Submit Case';
+
+	switch (status) {
+		case 'passed':
+			return 'Passed ✓';
+		case 'can_be_improved':
+			return 'Can Be Improved';
+		case 'not_passed':
+			return 'Not Passed';
+		case 'submitted':
+			return 'Submitted';
+		default:
+			return 'Submit Case';
 	}
 }
 

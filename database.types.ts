@@ -90,6 +90,7 @@ export type Database = {
 			chats: {
 				Row: {
 					agent_id: string | null;
+					assessment: number | null;
 					case_id: string | null;
 					created_at: string;
 					id: number;
@@ -97,9 +98,11 @@ export type Database = {
 					messages: Json[];
 					status: string;
 					user_id: string | null;
+					user_rating: number | null;
 				};
 				Insert: {
 					agent_id?: string | null;
+					assessment?: number | null;
 					case_id?: string | null;
 					created_at?: string;
 					id?: number;
@@ -107,9 +110,11 @@ export type Database = {
 					messages?: Json[];
 					status?: string;
 					user_id?: string | null;
+					user_rating?: number | null;
 				};
 				Update: {
 					agent_id?: string | null;
+					assessment?: number | null;
 					case_id?: string | null;
 					created_at?: string;
 					id?: number;
@@ -117,6 +122,7 @@ export type Database = {
 					messages?: Json[];
 					status?: string;
 					user_id?: string | null;
+					user_rating?: number | null;
 				};
 				Relationships: [
 					{

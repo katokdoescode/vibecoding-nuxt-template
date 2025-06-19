@@ -21,6 +21,8 @@
 					v-if="caseItem.id && caseItem.isAvailable"
 					:case-item="caseItem"
 					:index="index"
+					:status="caseItem.status"
+					:chat-id="caseItem.chatId"
 				/>
 
 				<!-- Locked Case -->
@@ -29,13 +31,14 @@
 					:index="index"
 					:title="caseItem.title"
 					:description="caseItem.description"
+					:reason="caseItem.lockReason"
 				/>
 			</div>
 		</div>
 
 		<!-- Loading State -->
 		<div
-			v-if="pending"
+			v-if="pending || statusPending"
 			class="text-center py-12"
 		>
 			<div class="inline-flex items-center space-x-2">
@@ -43,7 +46,9 @@
 					name="lucide:refresh-cw"
 					class="animate-spin h-5 w-5"
 				/>
-				<span>Loading cases...</span>
+				<span>
+					{{ pending ? 'Loading cases...' : 'Loading your progress...' }}
+				</span>
 			</div>
 		</div>
 	</div>
@@ -54,19 +59,69 @@ import type { Case } from '~/server/types';
 import CaseCard from '@/components/CaseCard.vue';
 import LockedCaseCard from '@/components/LockedCaseCard.vue';
 
+interface CaseWithStatus extends Case {
+	isAvailable: boolean;
+	status?: string;
+	chatId?: number;
+	lockReason?: string;
+}
+
 definePageMeta({
 	layout: 'default',
+	middleware: 'auth',
 });
 
-// Fetch cases
+// Fetch cases and user statuses
 const { data: cases, pending } = await useAsyncData('cases', () => {
 	return $fetch<Case[]>('/api/cases');
 });
 
+// Get current user for reactive status fetching
+const user = useSupabaseUser();
+
+const { data: caseStatuses, pending: statusPending, refresh: refreshStatuses } = await useLazyAsyncData(
+	'user-case-statuses',
+	async () => {
+		// Wait for user authentication to be resolved
+		if (!user.value) {
+			return {} as Record<string, { status: string; chatId: number }>;
+		}
+
+		try {
+			return await $fetch<Record<string, { status: string; chatId: number }>>('/api/user-case-statuses');
+		}
+		catch (error) {
+			console.warn('Failed to fetch user case statuses:', error);
+			return {} as Record<string, { status: string; chatId: number }>;
+		}
+	},
+	{
+		default: () => ({} as Record<string, { status: string; chatId: number }>),
+		server: false,
+	},
+);
+
+// Ensure data is fetched when component mounts if user is already authenticated
+onMounted(() => {
+	if (user.value) {
+		refreshStatuses();
+	}
+});
+
+// Watch for authentication changes and refresh status data
+watch(user, async (newUser, oldUser) => {
+	// Only refresh if user just became authenticated (avoid infinite loops)
+	if (newUser && !oldUser) {
+		await nextTick();
+		refreshStatuses();
+	}
+}, { immediate: false });
+
 // Create ordered cases array (9 total, with dependencies resolved)
 const orderedCases = computed(() => {
-	const result: Array<Case & { isAvailable: boolean }> = [];
+	const result: CaseWithStatus[] = [];
 	const caseMap = new Map<string, Case>();
+	const statusMap = caseStatuses.value || {};
 
 	// Create map of available cases
 	if (cases.value) {
@@ -77,20 +132,45 @@ const orderedCases = computed(() => {
 	const rootCases = cases.value?.filter(c => !c.can_be_done_after) || [];
 	const processedIds = new Set<string>();
 
-	// Add cases in dependency order
-	const addCaseAndDependents = (caseItem: Case) => {
-		if (processedIds.has(caseItem.id)) return;
-
-		result.push({ ...caseItem, isAvailable: true });
-		processedIds.add(caseItem.id);
-
-		// Find dependent cases
-		const dependents = cases.value?.filter(c => c.can_be_done_after === caseItem.id) || [];
-		dependents.forEach(addCaseAndDependents);
+	// Helper function to check if a case has been completed (assessed)
+	const isCaseCompleted = (status?: string): boolean => {
+		if (!status) return false;
+		return ['submitted', 'passed', 'can_be_improved', 'not_passed'].includes(status);
 	};
 
-	// Process root cases first
-	rootCases.forEach(addCaseAndDependents);
+	// Add cases in dependency order
+	const addCaseAndDependents = (caseItem: Case, canAccess: boolean = true) => {
+		if (processedIds.has(caseItem.id)) return;
+		const userStatus = statusMap[caseItem.id];
+		console.log('userStatus', userStatus);
+		const isCompleted = isCaseCompleted(userStatus?.status);
+
+		// Determine if case is available
+		const isAvailable = canAccess;
+		let lockReason = '';
+
+		if (!canAccess) {
+			lockReason = 'Complete previous cases first';
+		}
+
+		result.push({
+			...caseItem,
+			isAvailable,
+			status: userStatus?.status,
+			chatId: userStatus?.chatId,
+			lockReason,
+		});
+		processedIds.add(caseItem.id);
+
+		// Find dependent cases - they can only be accessed if current case is completed (assessed)
+		const dependents = cases.value?.filter(c => c.can_be_done_after === caseItem.id) || [];
+		dependents.forEach((dependent) => {
+			addCaseAndDependents(dependent, isCompleted);
+		});
+	};
+
+	// Process root cases first (always available)
+	rootCases.forEach(caseItem => addCaseAndDependents(caseItem, true));
 
 	// Fill remaining slots with placeholder locked cases
 	while (result.length < 9) {
@@ -104,7 +184,9 @@ const orderedCases = computed(() => {
 			story: null,
 			criteria_outcomes: null,
 			created_at: '',
+			slug: '',
 			isAvailable: false,
+			lockReason: 'Coming soon',
 		});
 	}
 

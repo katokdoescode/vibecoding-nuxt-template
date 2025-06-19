@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	const validStatuses = ['created', 'in progress', 'submitted'];
+	const validStatuses = ['created', 'in progress', 'submitted', 'passed', 'can_be_improved', 'not_passed'];
 	if (!validStatuses.includes(status)) {
 		throw createError({
 			statusCode: 400,

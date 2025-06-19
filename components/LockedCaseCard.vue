@@ -1,9 +1,9 @@
 <template>
-	<UCard class="h-full flex flex-col opacity-60 border-dashed border-2 border-muted-foreground/30 bg-muted/20">
+	<UCard class="h-full flex flex-col opacity-60 border-dashed">
 		<UCardHeader class="pb-3">
 			<div class="flex items-start justify-between mb-3">
 				<UBadge
-					variant="secondary"
+					variant="outline"
 					class="text-xs font-medium"
 				>
 					Locked
@@ -12,26 +12,34 @@
 					{{ index + 1 }}/9
 				</span>
 			</div>
-			<UCardTitle class="text-lg font-semibold leading-tight mb-2 flex items-start gap-2">
+			<UCardTitle class="text-lg font-semibold leading-tight mb-2 text-muted-foreground flex items-center gap-2">
 				<Icon
 					name="lucide:lock"
-					class="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5"
+					class="h-4 w-4 flex-shrink-0"
+					aria-hidden="true"
 				/>
-				<span class="text-muted-foreground">
-					{{ title || `Case ${index + 1}` }}
-				</span>
+				<span>{{ title || 'Locked Case' }}</span>
 			</UCardTitle>
 			<UCardDescription class="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-				{{ description || 'Complete previous cases to unlock this challenge.' }}
+				{{ description || 'This case will be unlocked when you complete the required prerequisites.' }}
 			</UCardDescription>
 		</UCardHeader>
 		<UCardFooter class="pt-0 mt-auto">
-			<div class="flex items-center text-xs text-muted-foreground">
-				<Icon
-					name="lucide:lock"
-					class="h-3 w-3 mr-1.5 flex-shrink-0"
-				/>
-				<span class="font-medium">Locked</span>
+			<div class="flex items-center justify-between w-full text-xs text-muted-foreground">
+				<div class="flex items-center">
+					<Icon
+						name="lucide:clock"
+						aria-hidden="true"
+						class="h-3 w-3 mr-1.5 flex-shrink-0"
+					/>
+					<span class="font-medium">Est. 30-45 min</span>
+				</div>
+				<div
+					v-if="reason"
+					class="text-xs font-medium"
+				>
+					{{ reason }}
+				</div>
 			</div>
 		</UCardFooter>
 	</UCard>
@@ -42,9 +50,14 @@ interface Props {
 	index: number;
 	title?: string | null;
 	description?: string | null;
+	reason?: string;
 }
 
-defineProps<Props>();
+withDefaults(defineProps<Props>(), {
+	title: null,
+	description: null,
+	reason: 'Complete previous cases first',
+});
 </script>
 
 <style scoped>

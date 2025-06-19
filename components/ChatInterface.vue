@@ -10,7 +10,7 @@
 					:variant="getStatusVariant(status)"
 					class="ml-auto"
 				>
-					{{ status }}
+					{{ getDisplayStatus(status) }}
 				</UBadge>
 			</UCardTitle>
 			<UCardDescription v-if="agent?.position">
@@ -101,7 +101,22 @@ function getStatusVariant(status: string) {
 		case 'created': return 'secondary';
 		case 'in progress': return 'default';
 		case 'submitted': return 'outline';
+		case 'passed': return 'default';
+		case 'can_be_improved': return 'secondary';
+		case 'not_passed': return 'destructive';
 		default: return 'secondary';
+	}
+}
+
+function getDisplayStatus(status: string) {
+	switch (status) {
+		case 'created': return 'Created';
+		case 'in progress': return 'In Progress';
+		case 'submitted': return 'Submitted';
+		case 'passed': return 'Passed ✓';
+		case 'can_be_improved': return 'Can Be Improved';
+		case 'not_passed': return 'Not Passed';
+		default: return status;
 	}
 }
 </script>
