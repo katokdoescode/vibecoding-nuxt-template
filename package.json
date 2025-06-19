@@ -17,6 +17,7 @@
   "dependencies": {
     "@nuxt/eslint": "^1.4.1",
     "@nuxt/fonts": "^0.11.4",
+    "@nuxt/icon": "^1.14.0",
     "@nuxt/image": "^1.10.0",
     "@nuxt/scripts": "^0.11.8",
     "@nuxtjs/supabase": "^1.5.2",
@@ -26,7 +27,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "eslint": "^9.29.0",
-    "lucide-vue-next": "^0.517.0",
     "nuxt": "^3.17.5",
     "nuxt-mcp": "^0.2.3",
     "openai": "^5.5.1",
@@ -39,6 +39,7 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.50",
     "lefthook": "^1.11.14"
   }
 }

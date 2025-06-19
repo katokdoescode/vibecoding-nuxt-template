@@ -11,6 +11,7 @@ export default defineNuxtConfig({
 		'@nuxtjs/supabase',
 		'nuxt-mcp',
 		'shadcn-nuxt',
+		'@nuxt/icon',
 	],
 	devtools: { enabled: true },
 	css: ['~/assets/css/tailwind.css'],
@@ -30,6 +31,11 @@ export default defineNuxtConfig({
 				quotes: 'single',
 				semi: true,
 			},
+		},
+	},
+	icon: {
+		serverBundle: {
+			collections: ['lucide'],
 		},
 	},
 	shadcn: {

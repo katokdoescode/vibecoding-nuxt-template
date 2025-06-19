@@ -7,26 +7,17 @@
 			class="fixed top-4 right-4 z-50"
 			@click="toggleSidePanel"
 		>
-			<svg
+			<Icon
+				name="lucide:menu"
 				class="h-4 w-4"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M4 6h16M4 12h16M4 18h16"
-				/>
-			</svg>
+			/>
 		</Button>
 
 		<!-- Collapsible Side Panel -->
 		<Sheet v-model:open="sidePanelOpen">
 			<SheetContent
 				side="right"
-				class="w-80"
+				class="w-80 px-4"
 			>
 				<SheetHeader>
 					<SheetTitle>Actions</SheetTitle>

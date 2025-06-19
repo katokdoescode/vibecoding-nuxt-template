@@ -13,19 +13,10 @@
 				</span>
 			</div>
 			<CardTitle class="text-lg font-semibold leading-tight mb-2 flex items-start gap-2">
-				<svg
+				<Icon
+					name="lucide:lock"
 					class="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 15v2m-6 4h12a2 2 0 002-2v-9a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2z"
-					/>
-				</svg>
+				/>
 				<span class="text-muted-foreground">
 					{{ title || `Case ${index + 1}` }}
 				</span>
@@ -36,19 +27,10 @@
 		</CardHeader>
 		<CardFooter class="pt-0 mt-auto">
 			<div class="flex items-center text-xs text-muted-foreground">
-				<svg
+				<Icon
+					name="lucide:lock"
 					class="h-3 w-3 mr-1.5 flex-shrink-0"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 15v2m-6 4h12a2 2 0 002-2v-9a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2z"
-					/>
-				</svg>
+				/>
 				<span class="font-medium">Locked</span>
 			</div>
 		</CardFooter>
