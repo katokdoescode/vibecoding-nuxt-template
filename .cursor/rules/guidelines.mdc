@@ -3,70 +3,203 @@ description:
 globs:
 alwaysApply: true
 ---
-# Developer Guidelines for project
+# Developer Guidelines for AI Role Player Tutor
 
 ## Tech Stack
-- **Nuxt 3** (Vue 3, TypeScript)
-- **Supabase** (auth, backend)
-- **OpenAI API** (AI features)
-- **Tailwind CSS v4** (utility-first styling)
-- **ShadCN Vue** (UI components)
-- **ESLint** (linting)
-- **Lefthook** (git hooks)
+- **Nuxt 3** (Vue 3, TypeScript) — Main framework
+- **Supabase** (auth, backend) — Database and authentication
+- **OpenAI API** (AI features) — Chat completions and transcription
+- **Tailwind CSS v4** (utility-first styling) — Modern CSS framework
+- **ShadCN Vue** (UI components) — Component library with 'U' prefix
+- **@nuxt/icon** — Icon system using Lucide icons
+- **@nuxt/image** — Optimized image handling
+- **@nuxt/fonts** — Font optimization
+- **@nuxtjs/mdc** — Markdown component support
+- **ESLint** — Code linting with auto-fix
+- **Lefthook** — Git hooks for pre-commit linting
+
+## Nuxt Modules Configuration
+The project uses these Nuxt modules (configured in `nuxt.config.ts`):
+- `@nuxt/eslint` — ESLint integration
+- `@nuxt/image` — Image optimization
+- `@nuxt/fonts` — Font management
+- `@nuxt/scripts` — Script loading
+- `@nuxtjs/supabase` — Supabase integration
+- `nuxt-mcp` — MCP protocol support
+- `shadcn-nuxt` — ShadCN component integration
+- `@nuxt/icon` — Icon management with Lucide collection
+- `@nuxtjs/mdc` — Markdown component support
 
 ## Project Structure
 - `components/` — UI components (use ShadCN Vue components, Tailwind for styling)
-- `components/ui` - Installed ShadCN components
-- `composables/` — Reusable logic (Vue composables)
+- `components/ui/` — ShadCN components with 'U' prefix (UCard, UButton, etc.)
+- `composables/` — Reusable logic (useAuth, useUser for auth management)
 - `layouts/` — App layouts (e.g., `default.vue`, `authorized.vue`)
-- `middleware/` — Route guards (e.g., `auth.ts`)
-- `pages/` — App pages (auto-routed)
-- `server/api/` — API endpoints (server-side)
-- `server/utils/` — Server utilities
-- `assets/` — Static assets (css, icons)
+- `middleware/` — Route guards (e.g., `auth.ts` for authentication)
+- `pages/` — App pages (auto-routed, includes cases/[slug].vue pattern)
+- `server/api/` — API endpoints with nested structure
+  - `cases/` — Case-related endpoints
+  - `chats/` — Chat management endpoints
+  - `openai-transcribe.post.ts` — AI transcription endpoint
+- `server/utils/` — Server utilities (requireAuth, prompts)
+- `server/types.ts` — Extended server types
+- `database.types.ts` — Auto-generated Supabase types
+- `lib/utils.ts` — Utility functions (cn function for class merging)
+- `assets/css/` — CSS files (tailwind.css)
 - `public/` — Public static files
 
-## Organization & Conventions
-- Use **ShadCN Vue** components instead of native HTML when available.
-- Style only with **Tailwind CSS** classes (no custom CSS unless necessary).
-- All components must be adaptive to all screen sizes (no breakpoints needed).
-- Remove unused variables and imports.
-- Use composables for shared logic.
-- Keep code modular and maintain a simple layered architecture.
-- Use Supabase for all backend/auth needs.
-- Never use `any`, `as`, or `as any` in TypeScript.
+## Database Structure (Supabase)
+The project uses these main tables:
+- `agents` — AI agents with prompts and positions
+- `cases` — Study cases with dependencies, difficulty levels, and criteria
+- `chats` — Chat sessions linking users, cases, and agents
 
-## Scripts
-- `npm run dev` — Start development server
-- `npm run build` — Build for production
-- `npm run preview` — Preview production build
-- `npm run lint` — Auto-fix lint issues
+Key relationships:
+- Cases can have dependencies (`can_be_done_after`)
+- Chats link users to specific cases and agents
+- Extended types combine related data (ExtendedChat)
 
-## Testing
-- No explicit test setup yet. Use `npm run lint` and pre-commit hooks for code quality.
-- Pre-commit: ESLint auto-fix runs on staged files (see `lefthook.yml`).
+## Icons System (@nuxt/icon)
+- Uses **Lucide** icon collection exclusively
+- Icon naming patterns:
+  - `lucide:icon-name` (e.g., `lucide:clock`, `lucide:x`)
+  - `i-lucide-icon-name` (alternative format)
+- Usage: `<Icon name="lucide:clock" />` or `<Icon name="i-lucide-arrow-left" />`
+- Icons are server-bundled for performance
+- Always include `aria-hidden="true"` for decorative icons
+- Use semantic sizing classes: `h-4 w-4`, `h-5 w-5`, etc.
 
-## Best Practices
-- Follow Nuxt and Vue conventions.
-- Use environment variables via `.env` (see `.env.example`).
-- Keep UI/UX clean, modern, and accessible.
-- Use only the packages listed in `package.json`.
-- Refer to [ShadCN Vue docs](mdc:https:/ui.nuxt.com) for UI components.
-- For deployment, see [Nuxt deployment docs](mdc:https:/nuxt.com/docs/getting-started/deployment).
+## ShadCN Vue Configuration
+- **Style**: "new-york" theme
+- **Prefix**: "U" (UCard, UButton, UInput, etc.)
+- **Base Color**: "zinc"
+- **CSS Variables**: enabled
+- **Icon Library**: Lucide (configured in components.json)
+- **TypeScript**: fully enabled
 
-## Protected API routes
+Available ShadCN components:
+- UCard (with UCardHeader, UCardContent, UCardFooter, UCardTitle, UCardDescription)
+- UButton (with size and variant props)
+- UInput
+- ULabel
+- UBadge
+- UDialog (with all sub-components)
+- USheet (with all sub-components)
+- UTabs (with UTabsList, UTabsTrigger, UTabsContent)
+- UNavigationMenu (with all sub-components)
+- UAvatar (with UAvatarImage, UAvatarFallback)
 
-To protect API routes, use `requireAuth` guard.
+## Authentication Patterns
+Use the `useAuth()` composable for all authentication:
+```typescript
+const {
+  signInWithEmail,
+  signUp,
+  signInWithGoogle,
+  signOut,
+  isAuthenticated,
+  user
+} = useAuth();
+```
 
-Example to protect your api endpoint:
+**Authentication Methods:**
+- `signInWithEmail(email, password)` — Email/password login
+- `signUp(email, password, confirmPassword)` — User registration
+- `signInWithGoogle()` — OAuth with Google
+- `signOut()` — Clear all auth state
 
-```TypeScript
+**Auth Guards:**
+- Use `auth.ts` middleware for protected routes
+- Use `requireAuth()` utility for protected API endpoints
+
+## Component Conventions
+- **Case Cards**: Use `CaseCard.vue` for available cases, `LockedCaseCard.vue` for locked ones
+- **Difficulty Badges**: Use badge variants based on difficulty level (1-2: default, 3-4: secondary, 5+: destructive)
+- **Loading States**: Use spinning icons with `animate-spin` class
+- **Hover Effects**: Use `group` and `group-hover:` patterns for interactive cards
+- **Link Overlays**: Use absolute positioned NuxtLink for card clickability
+
+## API Patterns
+**Protected Routes:**
+```typescript
 import { requireAuth } from '~/server/utils/requireAuth';
 
 export default defineEventHandler(async (event) => {
   const user = await requireAuth(event);
-
-  // Now you have the authenticated user
-  return { message: `Hello, ${user.email}` };
+  // Route logic here
 });
 ```
+
+**Chat API Structure:**
+- `POST /api/chats/create` — Create new chat
+- `POST /api/chats/[id]/messages` — Add messages
+- `PATCH /api/chats/[id]/status` — Update chat status
+
+## Styling Conventions
+- **Tailwind Only**: No custom CSS unless absolutely necessary
+- **Responsive**: All components adapt to screen sizes automatically
+- **Color Scheme**: Use semantic colors (primary, secondary, muted-foreground, destructive)
+- **Spacing**: Consistent spacing scale (p-4, mb-6, etc.)
+- **Typography**: Use font-weight classes (font-medium, font-semibold, font-bold)
+
+## Utility Functions
+- **cn()**: Class name utility combining clsx and tailwind-merge
+  ```typescript
+  import { cn } from '~/lib/utils';
+  // Usage: cn('base-classes', condition && 'conditional-classes')
+  ```
+
+## TypeScript Conventions
+- **Never use**: `any`, `as`, or `as any`
+- **Import types**: Use `import type` for type-only imports
+- **Database Types**: Import from `~/server/types` or `~/database.types`
+- **Component Props**: Always define explicit Props interfaces
+- **Event Handlers**: Properly type event parameters
+
+## OpenAI Integration
+- API key stored in runtime config (`OPENAI_API_KEY`)
+- Basic prompts in `server/utils/prompts.ts`
+- Transcription endpoint available at `/api/openai-transcribe`
+
+## Scripts & Development
+- `npm run dev` — Start development server
+- `npm run build` — Build for production
+- `npm run preview` — Preview production build
+- `npm run lint` — Auto-fix lint issues with ESLint
+
+## Git Hooks (Lefthook)
+- Pre-commit: ESLint auto-fix runs on staged files
+- Configured in `lefthook.yml`
+
+## Best Practices
+- Follow Nuxt 3 and Vue 3 composition API conventions
+- Use environment variables via `.env` (see `.env.example`)
+- Keep UI/UX clean, modern, and accessible
+- Use only packages listed in `package.json`
+- Import paths: Use `~/` for root, `@/` for components
+- Remove unused variables and imports (ESLint enforced)
+- Use composables for shared logic
+- Keep code modular with clear separation of concerns
+
+## Component Import Patterns
+```typescript
+// ShadCN components (with U prefix)
+import { UCard, UButton } from '@/components/ui'
+
+// Custom components
+import CaseCard from '@/components/CaseCard.vue'
+
+// Icons
+<Icon name="lucide:clock" />
+
+// Nuxt components
+<NuxtLink to="/path" />
+<NuxtImg src="/image.jpg" />
+```
+
+## Documentation References
+- [Nuxt 3 Documentation](mdc:https:/nuxt.com/docs)
+- [ShadCN Vue Documentation](mdc:https:/shadcn-vue.com)
+- [Tailwind CSS v4](mdc:https:/tailwindcss.com)
+- [Supabase Documentation](mdc:https:/supabase.com/docs)
+- [Lucide Icons](mdc:https:/lucide.dev)
