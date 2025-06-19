@@ -104,6 +104,9 @@ const getStatusVariant = (status: string) => {
 		case 'created': return 'outline';
 		case 'in progress': return 'default';
 		case 'submitted': return 'secondary';
+		case 'passed': return 'default';
+		case 'can_be_improved': return 'secondary';
+		case 'not_passed': return 'destructive';
 		default: return 'outline';
 	}
 };
@@ -113,7 +116,10 @@ const getStatusLabel = (status: string) => {
 		case 'created': return 'Started';
 		case 'in progress': return 'In Progress';
 		case 'submitted': return 'Completed';
-		default: return 'Unknown';
+		case 'passed': return 'Passed';
+		case 'can_be_improved': return 'Can be improved';
+		case 'not_passed': return 'Not passed';
+		default: return 'Not Started';
 	}
 };
 
@@ -122,7 +128,10 @@ const getStatusDescription = (status: string) => {
 		case 'created': return 'Chat created';
 		case 'in progress': return 'Active';
 		case 'submitted': return 'Submitted';
-		default: return '';
+		case 'passed': return 'Passed';
+		case 'can_be_improved': return 'Can be improved';
+		case 'not_passed': return 'Not passed';
+		default: return 'Ready to start';
 	}
 };
 </script>

@@ -84,7 +84,7 @@ const { data: caseStatuses, pending: statusPending, refresh: refreshStatuses } =
 	async () => {
 		// Wait for user authentication to be resolved
 		if (!user.value) {
-			return {} as Record<string, { status: string; chatId: number }>;
+			return null;
 		}
 
 		try {
@@ -92,7 +92,7 @@ const { data: caseStatuses, pending: statusPending, refresh: refreshStatuses } =
 		}
 		catch (error) {
 			console.warn('Failed to fetch user case statuses:', error);
-			return {} as Record<string, { status: string; chatId: number }>;
+			return null;
 		}
 	},
 	{
@@ -121,7 +121,7 @@ watch(user, async (newUser, oldUser) => {
 const orderedCases = computed(() => {
 	const result: CaseWithStatus[] = [];
 	const caseMap = new Map<string, Case>();
-	const statusMap = caseStatuses.value || {};
+	const statusMap = new Map(Object.entries(caseStatuses.value || {}));
 
 	// Create map of available cases
 	if (cases.value) {
@@ -141,8 +141,7 @@ const orderedCases = computed(() => {
 	// Add cases in dependency order
 	const addCaseAndDependents = (caseItem: Case, canAccess: boolean = true) => {
 		if (processedIds.has(caseItem.id)) return;
-		const userStatus = statusMap[caseItem.id];
-		console.log('userStatus', userStatus);
+		const userStatus = statusMap.get(caseItem.id);
 		const isCompleted = isCaseCompleted(userStatus?.status);
 
 		// Determine if case is available
