@@ -5,8 +5,19 @@ export type Case = Database['public']['Tables']['cases']['Row'];
 export type Agent = Database['public']['Tables']['agents']['Row'];
 export type Chat = Database['public']['Tables']['chats']['Row'];
 
+export type Message = {
+	type: 'user' | 'agent';
+	text: string;
+	timestamp: string;
+};
+
 export type ExtendedChat = Omit<Chat, 'case_id' | 'agent_id' | 'user_id'> & {
 	case_id: Case;
 	agent_id: Agent;
 	user_id: User;
+};
+
+// Typed chat with proper message structure
+export type TypedChat = Omit<Chat, 'messages'> & {
+	messages: Message[];
 };

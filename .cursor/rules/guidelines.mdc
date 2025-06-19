@@ -8,7 +8,8 @@ alwaysApply: true
 ## Tech Stack
 - **Nuxt 3** (Vue 3, TypeScript) — Main framework
 - **Supabase** (auth, backend) — Database and authentication
-- **OpenAI API** (AI features) — Chat completions and transcription
+- **AI SDK (Vercel)** — TypeScript toolkit for AI features
+- **OpenAI API** (AI features) — Chat completions with GPT-4 Turbo
 - **Tailwind CSS v4** (utility-first styling) — Modern CSS framework
 - **ShadCN Vue** (UI components) — Component library with 'U' prefix
 - **@nuxt/icon** — Icon system using Lucide icons
@@ -40,6 +41,10 @@ The project uses these Nuxt modules (configured in `nuxt.config.ts`):
 - `server/api/` — API endpoints with nested structure
   - `cases/` — Case-related endpoints
   - `chats/` — Chat management endpoints
+    - `[id]/generate-response.post.ts` — AI response generation
+    - `[id]/messages.post.ts` — Message management
+    - `[id]/status.patch.ts` — Chat status updates
+    - `create.post.ts` — Chat creation
   - `openai-transcribe.post.ts` — AI transcription endpoint
 - `server/utils/` — Server utilities (requireAuth, prompts)
 - `server/types.ts` — Extended server types
@@ -133,6 +138,7 @@ export default defineEventHandler(async (event) => {
 **Chat API Structure:**
 - `POST /api/chats/create` — Create new chat
 - `POST /api/chats/[id]/messages` — Add messages
+- `POST /api/chats/[id]/generate-response` — Generate AI agent responses
 - `PATCH /api/chats/[id]/status` — Update chat status
 
 ## Styling Conventions
@@ -153,13 +159,92 @@ export default defineEventHandler(async (event) => {
 - **Never use**: `any`, `as`, or `as any`
 - **Import types**: Use `import type` for type-only imports
 - **Database Types**: Import from `~/server/types` or `~/database.types`
+- **AI Message Types**: Use `Message` and `TypedChat` for chat-related functionality
 - **Component Props**: Always define explicit Props interfaces
 - **Event Handlers**: Properly type event parameters
+- **AI Validation**: Use Zod schemas for AI endpoint input validation
 
-## OpenAI Integration
-- API key stored in runtime config (`OPENAI_API_KEY`)
-- Basic prompts in `server/utils/prompts.ts`
-- Transcription endpoint available at `/api/openai-transcribe`
+## AI Features Integration
+
+### AI SDK Configuration
+- **Framework**: Vercel AI SDK with OpenAI provider
+- **Model**: GPT-4 Turbo Preview (`gpt-4-turbo-preview`)
+- **API Key**: Stored in runtime config (`OPENAI_API_KEY`)
+- **Dependencies**: `ai`, `@ai-sdk/openai`, `zod`
+
+### AI Response Generation
+**Endpoint**: `POST /api/chats/[id]/generate-response`
+
+```typescript
+// Usage example
+const response = await $fetch(`/api/chats/${chatId}/generate-response`, {
+  method: 'POST',
+  body: {
+    userMessage: 'User input text',
+  },
+});
+```
+
+**Context Elements Used:**
+- Case story and description
+- Agent personality (name, position, prompt)
+- Full conversation history
+- User's current message
+
+### AI SDK Import Pattern
+```typescript
+import { generateText } from 'ai';
+import { openai } from '@ai-sdk/openai';
+
+// Generate contextual response
+const { text } = await generateText({
+  model: openai('gpt-4-turbo-preview'),
+  system: systemPrompt,
+  prompt: userInput,
+  maxTokens: 1000,
+  temperature: 0.7,
+});
+```
+
+### Message Types (server/types.ts)
+```typescript
+// Standardized message structure
+export type Message = {
+  type: 'user' | 'agent';
+  text: string;
+  timestamp: string;
+};
+
+// Chat with typed messages
+export type TypedChat = Omit<Chat, 'messages'> & {
+  messages: Message[];
+};
+```
+
+### AI Agent Behavior
+- **Character Consistency**: Agents stay in character using their `name`, `position`, and `prompt`
+- **Context Awareness**: Full access to case story and conversation history
+- **Professional Tone**: Maintains supportive, educational responses
+- **Error Handling**: Graceful fallbacks for AI generation failures
+
+### Chat Flow with AI
+1. User sends message → Stored in database
+2. AI generation triggered → Context gathered (case + agent + history)
+3. OpenAI generates response → Contextual, character-consistent reply
+4. Response saved → Database updated with agent message
+5. UI updates → Real-time via Supabase subscriptions
+
+### Additional AI Endpoints
+- `POST /api/openai-transcribe` — Audio transcription (existing)
+- Basic prompts available in `server/utils/prompts.ts`
+
+### AI Best Practices
+- Always validate user input with Zod schemas
+- Use proper TypeScript types (`Message`, `TypedChat`)
+- Handle AI generation errors gracefully
+- Maintain conversation context for coherent responses
+- Use appropriate temperature settings (0.7 for balanced creativity)
+- Set reasonable token limits (1000 tokens for responses)
 
 ## Scripts & Development
 - `npm run dev` — Start development server
@@ -181,24 +266,72 @@ export default defineEventHandler(async (event) => {
 - Use composables for shared logic
 - Keep code modular with clear separation of concerns
 
-## Component Import Patterns
+## Nuxt Auto-Imports
+Nuxt 3 automatically imports components, composables, and utilities. **No manual imports needed** for:
+
+### Auto-Imported Components
+- **ShadCN UI components**: `UCard`, `UButton`, `UInput`, etc. (directly available)
+- **Custom components**: All components from `components/` directory
+- **Nuxt built-ins**: `NuxtLink`, `NuxtImg`, `Icon`, etc.
+
+### Auto-Imported Composables
+- **Custom composables**: `useAuth()`, `useUser()` from `composables/` directory
+- **Nuxt composables**: `useState()`, `useFetch()`, `navigateTo()`, etc.
+- **Utility functions**: `cn()` from `lib/utils.ts`
+
+### Manual Imports Still Required
 ```typescript
-// ShadCN components (with U prefix)
-import { UCard, UButton } from '@/components/ui'
+// External library imports (AI SDK, third-party packages)
+import { generateText } from 'ai'
+import { openai } from '@ai-sdk/openai'
+import { z } from 'zod'
 
-// Custom components
-import CaseCard from '@/components/CaseCard.vue'
+// Type-only imports (always explicit)
+import type { Message, TypedChat } from '~/server/types'
+import type { Database } from '~/database.types'
 
-// Icons
-<Icon name="lucide:clock" />
+// Server-side imports (in API routes)
+import { requireAuth } from '~/server/utils/requireAuth'
+```
 
-// Nuxt components
-<NuxtLink to="/path" />
-<NuxtImg src="/image.jpg" />
+### Usage Examples (No Imports Needed)
+```vue
+<template>
+  <!-- ShadCN components auto-imported -->
+  <UCard>
+    <UCardHeader>
+      <UCardTitle>Auto-imported Components</UCardTitle>
+    </UCardHeader>
+    <UCardContent>
+      <!-- Custom components auto-imported -->
+      <CaseCard :case="selectedCase" />
+      <!-- Nuxt components auto-imported -->
+      <NuxtLink to="/cases">
+        <UButton>
+          <!-- Icons auto-imported -->
+          <Icon name="lucide:arrow-left" />
+          Back to Cases
+        </UButton>
+      </NuxtLink>
+    </UCardContent>
+  </UCard>
+</template>
+
+<script setup lang="ts">
+// Composables auto-imported (no import needed)
+const { user, isAuthenticated } = useAuth()
+const { cn } = useUtils() // if exposed from lib/utils.ts
+
+// Utilities auto-imported
+const currentCase = useState('current-case')
+await navigateTo('/dashboard')
+</script>
 ```
 
 ## Documentation References
 - [Nuxt 3 Documentation](mdc:https:/nuxt.com/docs)
+- [AI SDK Documentation](mdc:https:/ai-sdk.dev/docs)
+- [OpenAI API Documentation](mdc:https:/platform.openai.com/docs)
 - [ShadCN Vue Documentation](mdc:https:/shadcn-vue.com)
 - [Tailwind CSS v4](mdc:https:/tailwindcss.com)
 - [Supabase Documentation](mdc:https:/supabase.com/docs)

@@ -1,7 +1,7 @@
 import { serverSupabaseClient } from '#supabase/server';
 import { requireAuth } from '~/server/utils/requireAuth';
 import type { Database } from '~/database.types';
-import type { Chat } from '~/server/types';
+import type { Chat, Message } from '~/server/types';
 
 export default defineEventHandler(async (event) => {
 	const user = await requireAuth(event);
@@ -50,8 +50,12 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Add new message to messages array
-	const newMessage = { type, text: message, timestamp: new Date().toISOString() };
-	const updatedMessages = [...(chat.messages || []), newMessage];
+	const newMessage: Message = {
+		type: type as 'user' | 'agent',
+		text: message,
+		timestamp: new Date().toISOString(),
+	};
+	const updatedMessages = [...((chat.messages as Message[]) || []), newMessage];
 
 	// Update status to "in progress" if this is the first user message
 	const shouldUpdateStatus = chat.status === 'created' && type === 'user';

@@ -65,6 +65,7 @@
 
 <script setup lang="ts">
 import type { Database } from '~/database.types';
+import type { TypedChat } from '~/server/types';
 
 // Types
 interface CaseWithAgent {
@@ -82,15 +83,7 @@ interface CaseWithAgent {
 	} | null;
 }
 
-interface ChatData {
-	id: number;
-	status: string;
-	messages: Array<{
-		type: 'user' | 'agent';
-		text: string;
-		timestamp: string;
-	}>;
-}
+type ChatData = Pick<TypedChat, 'id' | 'status' | 'messages'>;
 
 // Page metadata
 definePageMeta({
@@ -185,27 +178,34 @@ async function sendMessage(messageText?: string) {
 			},
 		});
 
-		// Simulate agent typing
+		// Generate AI response
 		isTyping.value = true;
 
-		// TODO: Here you would call your AI service to generate agent response
-		// For now, simulate a delay and send a mock response
-		setTimeout(async () => {
-			isTyping.value = false;
+		try {
+			await $fetch(`/api/chats/${chat.value.id}/generate-response`, {
+				method: 'POST',
+				body: {
+					userMessage: text,
+				},
+			});
 
-			try {
-				await $fetch(`/api/chats/${chat.value!.id}/messages`, {
-					method: 'POST',
-					body: {
-						message: `Thank you for your message: "${text}". I'm here to help you with this case.`,
-						type: 'agent',
-					},
-				});
-			}
-			catch (error) {
-				console.error('Failed to send agent message:', error);
-			}
-		}, 2000);
+			// The AI response is automatically saved to the database by the endpoint
+			// The UI will update through the Supabase realtime subscription
+		}
+		catch (error) {
+			console.error('Failed to generate AI response:', error);
+			// If AI generation fails, show an error message
+			await $fetch(`/api/chats/${chat.value.id}/messages`, {
+				method: 'POST',
+				body: {
+					message: 'I apologize, but I encountered an error while processing your message. Please try again.',
+					type: 'agent',
+				},
+			});
+		}
+		finally {
+			isTyping.value = false;
+		}
 	}
 	catch (error) {
 		console.error('Failed to send message:', error);

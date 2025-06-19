@@ -12,7 +12,7 @@
 			</p>
 		</div>
 
-		<UCard class="h-full overflow-auto">
+		<UCard class="overflow-auto">
 			<UCardHeader>
 				<UCardTitle>Case Story</UCardTitle>
 			</UCardHeader>

@@ -1,5 +1,5 @@
 <template>
-	<UCard class="flex-1 flex flex-col">
+	<UCard class="flex flex-col">
 		<UCardHeader class="flex-shrink-0">
 			<UCardTitle class="flex items-center gap-2">
 				<UAvatar class="h-8 w-8">
@@ -20,7 +20,7 @@
 
 		<UCardContent class="flex-1 flex flex-col min-h-0">
 			<!-- Chat messages -->
-			<div class="flex-1 overflow-auto space-y-4 mb-4 min-h-0">
+			<div class="flex-1 overflow-auto space-y-4 mb-4 min-h-0 max-h-[700px]">
 				<div
 					v-if="messages.length === 0"
 					class="text-center text-muted-foreground py-8"
@@ -43,15 +43,17 @@
 					</div>
 				</div>
 			</div>
-
+		</UCardContent>
+		<UCardFooter>
 			<!-- Chat input -->
 			<ChatInput
 				v-model="inputMessage"
+				class="w-full"
 				:disabled="disabled || isSending"
 				:is-sending="isSending"
 				@send="handleSend"
 			/>
-		</UCardContent>
+		</UCardFooter>
 	</UCard>
 </template>
 
