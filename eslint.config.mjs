@@ -6,4 +6,17 @@ export default withNuxt({
     '@stylistic/no-tabs': 'off',
     '@ts-expect-error': 'off',
   },
+  ignores: [
+    '.nuxt',
+    'node_modules',
+    'dist',
+    'public',
+    'package.json',
+    'package-lock.json',
+    'pnpm-lock.yaml',
+    'yarn.lock',
+    'bun.lockb',
+    'bun.lock',
+    'bun.lockb',
+  ],
 });
