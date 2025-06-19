@@ -68,7 +68,6 @@ interface CaseWithStatus extends Case {
 
 definePageMeta({
 	layout: 'default',
-	middleware: 'auth',
 });
 
 // Fetch cases and user statuses

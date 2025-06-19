@@ -2,14 +2,14 @@
 	<div class="min-h-screen bg-background">
 		<div class="container mx-auto p-6">
 			<div class="flex items-center gap-2 mb-4">
-				<UButton
+				<NuxtLink
 					variant="outline"
 					size="sm"
-					@click="$router.back()"
+					href="/"
 				>
 					<Icon name="i-lucide-arrow-left" />
 					Back to cases
-				</UButton>
+				</NuxtLink>
 			</div>
 			<!-- Loading state -->
 			<div
@@ -53,7 +53,7 @@
 					/>
 
 					<!-- Right side: Chat Interface -->
-					<div class="flex flex-col h-full">
+					<div class="flex flex-col h-full relative">
 						<ChatInterface
 							v-model="newMessage"
 							:agent="studyCase.agent_id"
@@ -63,6 +63,12 @@
 							:disabled="isAssessed(chat?.status)"
 							:is-sending="isSending"
 							@send="sendMessage"
+						/>
+
+						<!-- Auth Overlay for unauthenticated users -->
+						<AuthOverlay
+							v-if="!user"
+							:return-url="$route.fullPath"
 						/>
 					</div>
 				</div>
@@ -93,10 +99,8 @@ interface CaseWithAgent {
 
 type ChatData = Pick<Chat, 'id' | 'status' | 'messages' | 'learning_outcomes'>;
 
-// Page metadata
-definePageMeta({
-	middleware: 'auth',
-});
+// Page metadata - No auth middleware, we handle auth with overlay
+definePageMeta({});
 
 // Get route params
 const route = useRoute();

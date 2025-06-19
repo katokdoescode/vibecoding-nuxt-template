@@ -197,6 +197,13 @@ useHead({
 const { signInWithEmail, signUp, signInWithGoogle } = useAuth();
 const user = useSupabaseUser();
 const router = useRouter();
+const route = useRoute();
+
+// Get return URL from query params
+const returnUrl = computed(() => {
+	const returnParam = route.query.return;
+	return typeof returnParam === 'string' ? returnParam : '/';
+});
 
 // Reactive state
 const isSignUp = ref(false);
@@ -227,9 +234,18 @@ onMounted(() => {
 	// Check immediately on mount
 	if (user.value) {
 		showRedirectMessage.value = true;
+		// Get return URL from localStorage if available (for OAuth flows)
+		const storedReturnUrl = localStorage.getItem('auth-return-url');
+		const targetUrl = storedReturnUrl || returnUrl.value;
+
+		// Clean up stored URL
+		if (storedReturnUrl) {
+			localStorage.removeItem('auth-return-url');
+		}
+
 		// Redirect after a brief delay to show the message
 		setTimeout(() => {
-			router.push('/');
+			router.push(targetUrl);
 		}, 2000);
 	}
 });
@@ -238,9 +254,18 @@ onMounted(() => {
 watch(user, (newUser) => {
 	if (import.meta.client && newUser) {
 		showRedirectMessage.value = true;
+		// Get return URL from localStorage if available (for OAuth flows)
+		const storedReturnUrl = localStorage.getItem('auth-return-url');
+		const targetUrl = storedReturnUrl || returnUrl.value;
+
+		// Clean up stored URL
+		if (storedReturnUrl) {
+			localStorage.removeItem('auth-return-url');
+		}
+
 		// Redirect after a brief delay to show the message
 		setTimeout(() => {
-			router.push('/');
+			router.push(targetUrl);
 		}, 2000);
 	}
 });
@@ -269,6 +294,11 @@ const handleGoogleSignIn = async () => {
 	try {
 		loading.value = true;
 		clearError();
+
+		// Store return URL in localStorage for OAuth callback
+		if (returnUrl.value !== '/') {
+			localStorage.setItem('auth-return-url', returnUrl.value);
+		}
 
 		const result = await signInWithGoogle();
 

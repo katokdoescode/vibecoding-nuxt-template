@@ -118,8 +118,8 @@ const performSignOut = async () => {
 		if (result.success) {
 			success.value = true;
 			// Show success message briefly before redirect
-			setTimeout(() => {
-				router.push('/');
+			setTimeout(async () => {
+				await router.push('/');
 			}, 1500);
 		}
 		else {
