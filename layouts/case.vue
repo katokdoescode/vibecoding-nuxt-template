@@ -1,5 +1,5 @@
 <template>
-	<div class="h-screen flex flex-col lg:flex-row overflow-hidden">
+	<div class="lg:h-screen flex flex-col lg:flex-row lg:overflow-hidden">
 		<!-- Sidebar for desktop, collapsible for mobile -->
 		<div class="lg:flex-shrink-0">
 			<AppSidebar />

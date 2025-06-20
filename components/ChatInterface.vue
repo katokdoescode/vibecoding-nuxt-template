@@ -1,5 +1,5 @@
 <template>
-	<UCard class="flex flex-col h-full !py-0">
+	<UCard class="flex flex-col h-full !py-0 w-full">
 		<UCardHeader class="flex-shrink-0 pt-6">
 			<UCardTitle class="flex items-center gap-2">
 				<UAvatar class="h-8 w-8">
@@ -18,7 +18,7 @@
 			</UCardDescription>
 		</UCardHeader>
 
-		<UCardContent class="flex-1 flex flex-col min-h-0 overflow-hidden">
+		<UCardContent class="flex-1 flex flex-col min-h-0 overflow-hidden max-lg:max-h-[70vh]">
 			<!-- Chat messages -->
 			<div
 				ref="messagesContainer"

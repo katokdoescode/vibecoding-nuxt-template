@@ -45,23 +45,14 @@
 		<!-- Main content -->
 		<div
 			v-else-if="studyCase && !error"
-			class="flex-1 flex flex-col overflow-hidden"
+			class="flex-1 flex flex-col lg:overflow-hidden overflow-y-auto px-4 pb-2"
 		>
-			<!-- Learning Outcomes (shown at top after assessment) -->
-			<div
-				v-if="isAssessed(chat?.status) && chat?.learning_outcomes"
-				class="flex-shrink-0 p-4 border-b border-border"
-			>
-				<LearningOutcomes :learning-outcomes="chat.learning_outcomes" />
-			</div>
-
 			<!-- Case Story and Chat - Full height layout -->
-			<div class="flex-1 overflow-hidden">
-				<!-- Desktop: 2-column layout -->
-				<div class="hidden lg:grid lg:grid-cols-2 lg:gap-2 h-full">
+			<div class="flex-1 lg:overflow-hidden overflow-y-auto">
+				<div class="flex flex-col lg:flex-row lg:gap-2 h-full">
 					<!-- Left side: Case story -->
-					<div class="border-r border-border overflow-y-auto h-full">
-						<div class="p-6 h-full flex flex-col">
+					<div class="flex-1 h-full max-lg:max-h-[70vh]">
+						<div class="py-6 h-full flex flex-col">
 							<CaseStory
 								:study-case="studyCase"
 								:disabled="!chat || isAssessed(chat.status)"
@@ -69,12 +60,31 @@
 								:submit-text="getSubmitButtonText(chat?.status)"
 								@submit="submitChat"
 							/>
+
+							<!-- Learning Outcomes Button -->
+							<div
+								v-if="isAssessed(chat?.status) && chat?.learning_outcomes"
+								class="pt-4 border-t border-border mt-4"
+							>
+								<UButton
+									variant="outline"
+									size="sm"
+									class="w-full"
+									@click="showLearningOutcomes = true"
+								>
+									<Icon
+										name="i-lucide-graduation-cap"
+										class="mr-2 h-4 w-4"
+									/>
+									View Learning Outcomes
+								</UButton>
+							</div>
 						</div>
 					</div>
 
 					<!-- Right side: Chat Interface -->
-					<div class="flex flex-col h-full relative overflow-hidden">
-						<div class="flex-1 overflow-hidden">
+					<div class="flex flex-1 flex-col h-full relative lg:overflow-hidden">
+						<div class="lg:overflow-hidden flex flex-1">
 							<ChatInterface
 								v-model="newMessage"
 								:agent="studyCase.agent_id"
@@ -94,42 +104,36 @@
 						/>
 					</div>
 				</div>
-
-				<!-- Mobile: Stacked layout with scrolling -->
-				<div class="lg:hidden overflow-y-auto h-full">
-					<div class="p-4 space-y-6">
-						<!-- Case story -->
-						<CaseStory
-							:study-case="studyCase"
-							:disabled="!chat || isAssessed(chat.status)"
-							:is-submitting="isSubmitting"
-							:submit-text="getSubmitButtonText(chat?.status)"
-							@submit="submitChat"
-						/>
-
-						<!-- Chat Interface -->
-						<div class="relative min-h-[60vh] max-h-[80vh] overflow-hidden">
-							<ChatInterface
-								v-model="newMessage"
-								:agent="studyCase.agent_id"
-								:messages="chat?.messages || []"
-								:status="chat?.status || 'created'"
-								:is-typing="isTyping"
-								:disabled="isAssessed(chat?.status)"
-								:is-sending="isSending"
-								@send="sendMessage"
-							/>
-
-							<!-- Auth Overlay for unauthenticated users -->
-							<AuthOverlay
-								v-if="!user"
-								:return-url="$route.fullPath"
-							/>
-						</div>
-					</div>
-				</div>
 			</div>
 		</div>
+
+		<!-- Learning Outcomes Overlay -->
+		<UDialog v-model:open="showLearningOutcomes">
+			<UDialogContent class="lg:max-w-[90vw] lg:w-[90vw] max-h-[90vh] overflow-hidden flex flex-col">
+				<UDialogHeader>
+					<UDialogTitle>Learning Outcomes Assessment</UDialogTitle>
+					<UDialogDescription>
+						Here's your detailed assessment and learning outcomes for this case.
+					</UDialogDescription>
+				</UDialogHeader>
+
+				<div class="flex-1 overflow-y-auto p-1">
+					<LearningOutcomes
+						v-if="chat?.learning_outcomes"
+						:learning-outcomes="chat.learning_outcomes"
+					/>
+				</div>
+
+				<div class="flex justify-end gap-2 pt-4 border-t">
+					<UButton
+						variant="outline"
+						@click="showLearningOutcomes = false"
+					>
+						Close
+					</UButton>
+				</div>
+			</UDialogContent>
+		</UDialog>
 	</div>
 </template>
 
@@ -169,6 +173,7 @@ const newMessage = ref('');
 const isTyping = ref(false);
 const isSending = ref(false);
 const isSubmitting = ref(false);
+const showLearningOutcomes = ref(false);
 
 // Fetch case data
 const { data: studyCase, error, pending } = await useFetch<CaseWithAgent>(`/api/cases/${slug}`);
@@ -187,6 +192,13 @@ watchEffect(async () => {
 		await initializeChat();
 	}
 });
+
+// Show learning outcomes overlay when they become available
+watch(() => chat.value?.learning_outcomes, (newOutcomes) => {
+	if (newOutcomes && isAssessed(chat.value?.status)) {
+		showLearningOutcomes.value = true;
+	}
+}, { immediate: true });
 
 // Cleanup subscription on unmount
 onUnmounted(() => {
