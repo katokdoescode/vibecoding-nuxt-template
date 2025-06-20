@@ -1,7 +1,8 @@
 <template>
-	<div class="min-h-screen bg-background">
-		<div class="container mx-auto p-6">
-			<div class="flex items-center gap-2 mb-4">
+	<div class="bg-background h-full flex flex-col">
+		<!-- Header with back button -->
+		<div class="flex-shrink-0 p-4 pb-6">
+			<div class="flex items-center gap-2">
 				<NuxtLink
 					variant="outline"
 					size="sm"
@@ -11,65 +12,120 @@
 					Back to cases
 				</NuxtLink>
 			</div>
-			<!-- Loading state -->
-			<div
-				v-if="pending"
-				class="flex items-center justify-center h-96"
+		</div>
+
+		<!-- Loading state -->
+		<div
+			v-if="pending"
+			class="flex-1 flex items-center justify-center"
+		>
+			<div class="text-lg">
+				Loading case...
+			</div>
+		</div>
+
+		<!-- Error state -->
+		<div
+			v-else-if="error"
+			class="flex-1 p-4"
+		>
+			<UAlert
+				variant="destructive"
+				icon="i-lucide-alert-triangle"
 			>
-				<div class="text-lg">
-					Loading case...
-				</div>
+				<UAlertTitle>
+					Failed to load case
+				</UAlertTitle>
+				<UAlertDescription>
+					{{ error?.statusMessage || 'Failed to load case' }}
+				</UAlertDescription>
+			</UAlert>
+		</div>
+
+		<!-- Main content -->
+		<div
+			v-else-if="studyCase && !error"
+			class="flex-1 flex flex-col overflow-hidden"
+		>
+			<!-- Learning Outcomes (shown at top after assessment) -->
+			<div
+				v-if="isAssessed(chat?.status) && chat?.learning_outcomes"
+				class="flex-shrink-0 p-4 border-b border-border"
+			>
+				<LearningOutcomes :learning-outcomes="chat.learning_outcomes" />
 			</div>
 
-			<!-- Error state -->
-			<div
-				v-else-if="error"
-				class="flex items-center justify-center h-96"
-			>
-				<div class="text-red-500">
-					{{ error.statusMessage || 'Failed to load case' }}
-				</div>
-			</div>
-
-			<!-- Main content -->
-			<div
-				v-else-if="studyCase"
-				class="space-y-6"
-			>
-				<!-- Learning Outcomes (shown at top after assessment) -->
-				<div v-if="isAssessed(chat?.status) && chat?.learning_outcomes">
-					<LearningOutcomes :learning-outcomes="chat.learning_outcomes" />
-				</div>
-
-				<!-- Case Story and Chat (always in 2-column layout) -->
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-12rem)]">
+			<!-- Case Story and Chat - Full height layout -->
+			<div class="flex-1 overflow-hidden">
+				<!-- Desktop: 2-column layout -->
+				<div class="hidden lg:grid lg:grid-cols-2 lg:gap-2 h-full">
 					<!-- Left side: Case story -->
-					<CaseStory
-						:study-case="studyCase"
-						:disabled="!chat || isAssessed(chat.status)"
-						:is-submitting="isSubmitting"
-						:submit-text="getSubmitButtonText(chat?.status)"
-						@submit="submitChat"
-					/>
+					<div class="border-r border-border overflow-y-auto h-full">
+						<div class="p-6 h-full flex flex-col">
+							<CaseStory
+								:study-case="studyCase"
+								:disabled="!chat || isAssessed(chat.status)"
+								:is-submitting="isSubmitting"
+								:submit-text="getSubmitButtonText(chat?.status)"
+								@submit="submitChat"
+							/>
+						</div>
+					</div>
 
 					<!-- Right side: Chat Interface -->
-					<div class="flex flex-col h-full relative">
-						<ChatInterface
-							v-model="newMessage"
-							:agent="studyCase.agent_id"
-							:messages="chat?.messages || []"
-							:status="chat?.status || 'created'"
-							:is-typing="isTyping"
-							:disabled="isAssessed(chat?.status)"
-							:is-sending="isSending"
-							@send="sendMessage"
-						/>
+					<div class="flex flex-col h-full relative overflow-hidden">
+						<div class="flex-1 overflow-hidden">
+							<ChatInterface
+								v-model="newMessage"
+								:agent="studyCase.agent_id"
+								:messages="chat?.messages || []"
+								:status="chat?.status || 'created'"
+								:is-typing="isTyping"
+								:disabled="isAssessed(chat?.status)"
+								:is-sending="isSending"
+								@send="sendMessage"
+							/>
+						</div>
 
 						<!-- Auth Overlay for unauthenticated users -->
 						<AuthOverlay
 							v-if="!user"
 							:return-url="$route.fullPath"
 						/>
+					</div>
+				</div>
+
+				<!-- Mobile: Stacked layout with scrolling -->
+				<div class="lg:hidden overflow-y-auto h-full">
+					<div class="p-4 space-y-6">
+						<!-- Case story -->
+						<CaseStory
+							:study-case="studyCase"
+							:disabled="!chat || isAssessed(chat.status)"
+							:is-submitting="isSubmitting"
+							:submit-text="getSubmitButtonText(chat?.status)"
+							@submit="submitChat"
+						/>
+
+						<!-- Chat Interface -->
+						<div class="relative min-h-[60vh] max-h-[80vh] overflow-hidden">
+							<ChatInterface
+								v-model="newMessage"
+								:agent="studyCase.agent_id"
+								:messages="chat?.messages || []"
+								:status="chat?.status || 'created'"
+								:is-typing="isTyping"
+								:disabled="isAssessed(chat?.status)"
+								:is-sending="isSending"
+								@send="sendMessage"
+							/>
+
+							<!-- Auth Overlay for unauthenticated users -->
+							<AuthOverlay
+								v-if="!user"
+								:return-url="$route.fullPath"
+							/>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -79,7 +135,7 @@
 
 <script setup lang="ts">
 import type { Database } from '~/database.types';
-import type { Chat, LearningOutcomes } from '~/server/types';
+import type { Chat } from '~/server/types';
 
 // Types
 interface CaseWithAgent {
@@ -99,8 +155,10 @@ interface CaseWithAgent {
 
 type ChatData = Pick<Chat, 'id' | 'status' | 'messages' | 'learning_outcomes'>;
 
-// Page metadata - No auth middleware, we handle auth with overlay
-definePageMeta({});
+// Page metadata - Use case layout and no auth middleware, we handle auth with overlay
+definePageMeta({
+	layout: 'case',
+});
 
 // Get route params
 const route = useRoute();

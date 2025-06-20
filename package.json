@@ -25,7 +25,7 @@
     "@nuxtjs/supabase": "^1.5.2",
     "@tailwindcss/vite": "^4.1.10",
     "@unhead/vue": "^2.0.10",
-    "@vueuse/core": "^13.3.0",
+    "@vueuse/core": "^13.4.0",
     "ai": "^4.3.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -42,7 +42,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.50",
+    "@iconify-json/lucide": "^1.2.51",
     "lefthook": "^1.11.14"
   }
 }

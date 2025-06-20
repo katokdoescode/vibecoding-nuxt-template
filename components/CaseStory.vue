@@ -1,6 +1,6 @@
 <template>
-	<div class="space-y-6">
-		<div>
+	<div class="h-full flex flex-col">
+		<div class="flex-shrink-0 mb-6">
 			<h1 class="text-3xl font-bold">
 				{{ studyCase.title }}
 			</h1>
@@ -12,11 +12,11 @@
 			</p>
 		</div>
 
-		<UCard class="overflow-auto">
-			<UCardHeader>
+		<UCard class="overflow-auto flex-1 !py-0 mb-6">
+			<UCardHeader class="pt-6">
 				<UCardTitle>Case Story</UCardTitle>
 			</UCardHeader>
-			<UCardContent>
+			<UCardContent class="pb-6">
 				<MDC
 					class="story"
 					:value="studyCase.story || ''"
@@ -26,7 +26,7 @@
 
 		<UButton
 			:disabled="disabled || isSubmitting"
-			class="w-full"
+			class="w-full flex-shrink-0"
 			size="lg"
 			@click="$emit('submit')"
 		>

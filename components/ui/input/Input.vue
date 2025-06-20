@@ -17,10 +17,22 @@ const modelValue = useVModel(props, 'modelValue', emits, {
 	passive: true,
 	defaultValue: props.defaultValue,
 });
+
+// Template ref for the input element
+const inputRef = ref<HTMLInputElement>();
+
+// Expose the input element and focus method to parent components
+defineExpose({
+	focus: () => inputRef.value?.focus(),
+	blur: () => inputRef.value?.blur(),
+	select: () => inputRef.value?.select(),
+	inputElement: inputRef,
+});
 </script>
 
 <template>
 	<input
+		ref="inputRef"
 		v-model="modelValue"
 		data-slot="input"
 		:class="cn(

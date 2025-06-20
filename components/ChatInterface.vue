@@ -1,6 +1,6 @@
 <template>
-	<UCard class="flex flex-col">
-		<UCardHeader class="flex-shrink-0">
+	<UCard class="flex flex-col h-full !py-0">
+		<UCardHeader class="flex-shrink-0 pt-6">
 			<UCardTitle class="flex items-center gap-2">
 				<UAvatar class="h-8 w-8">
 					<UAvatarFallback>{{ agent?.name?.charAt(0) || 'A' }}</UAvatarFallback>
@@ -18,9 +18,12 @@
 			</UCardDescription>
 		</UCardHeader>
 
-		<UCardContent class="flex-1 flex flex-col min-h-0">
+		<UCardContent class="flex-1 flex flex-col min-h-0 overflow-hidden">
 			<!-- Chat messages -->
-			<div class="flex-1 overflow-auto space-y-4 mb-4 min-h-0 max-h-[700px]">
+			<div
+				ref="messagesContainer"
+				class="flex-1 overflow-y-auto space-y-4 mb-4 min-h-0 max-h-full p-4 pb-6"
+			>
 				<div
 					v-if="messages.length === 0"
 					class="text-center text-muted-foreground py-8"
@@ -44,7 +47,7 @@
 				</div>
 			</div>
 		</UCardContent>
-		<UCardFooter>
+		<UCardFooter class="flex-shrink-0 pb-6">
 			<!-- Chat input -->
 			<ChatInput
 				v-model="inputMessage"
@@ -78,7 +81,7 @@ interface Props {
 	isSending?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
 	messages: () => [],
 	status: 'created',
 	isTyping: false,
@@ -92,9 +95,34 @@ const emit = defineEmits<{
 
 const inputMessage = defineModel<string>({ default: '' });
 
+// Template refs for scroll management
+const messagesContainer = ref<HTMLElement>();
+
 function handleSend(message: string) {
 	emit('send', message);
 }
+
+// Auto-scroll to bottom when messages change or typing status changes
+watch([() => props.messages, () => props.isTyping], () => {
+	scrollToBottom();
+}, { deep: true });
+
+// Scroll to bottom function with smooth behavior - only scrolls within the messages container
+function scrollToBottom() {
+	nextTick(() => {
+		if (messagesContainer.value) {
+			messagesContainer.value.scrollTo({
+				top: messagesContainer.value.scrollHeight,
+				behavior: 'smooth',
+			});
+		}
+	});
+}
+
+// Also scroll to bottom when component is mounted (initial load)
+onMounted(() => {
+	scrollToBottom();
+});
 
 function getStatusVariant(status: string) {
 	switch (status) {

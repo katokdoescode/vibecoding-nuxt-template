@@ -44,6 +44,7 @@ export type Database = {
 					id: string;
 					slug: string;
 					story: string | null;
+					tags: string[];
 					title: string | null;
 				};
 				Insert: {
@@ -56,6 +57,7 @@ export type Database = {
 					id?: string;
 					slug?: string;
 					story?: string | null;
+					tags?: string[];
 					title?: string | null;
 				};
 				Update: {
@@ -68,6 +70,7 @@ export type Database = {
 					id?: string;
 					slug?: string;
 					story?: string | null;
+					tags?: string[];
 					title?: string | null;
 				};
 				Relationships: [

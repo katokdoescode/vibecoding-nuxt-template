@@ -3,6 +3,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { requireAuth } from '~/server/utils/requireAuth';
 import { serverSupabaseServiceRole } from '#supabase/server';
+import { chatResponsePrompt, replaceTemplateVars } from '~/server/utils/prompts';
 import type { Database } from '~/database.types';
 import type { Message } from '~/server/types';
 
@@ -10,7 +11,17 @@ const generateResponseSchema = z.object({
 	userMessage: z.string().min(1),
 });
 
-export default defineEventHandler(async (event) => {
+// Zod schema for the structured response
+const generateResponseOutput = z.object({
+	success: z.boolean(),
+	message: z.string(),
+	timestamp: z.string(),
+	agent_name: z.string(),
+});
+
+type GenerateResponseOutput = z.infer<typeof generateResponseOutput>;
+
+export default defineEventHandler(async (event): Promise<GenerateResponseOutput> => {
 	const user = await requireAuth(event);
 	const chatIdParam = getRouterParam(event, 'id');
 
@@ -94,25 +105,16 @@ export default defineEventHandler(async (event) => {
 			`${msg.type === 'user' ? 'User' : 'Agent'}: ${msg.text}`,
 		).join('\n');
 
-		// Prepare the prompt with context
-		const systemPrompt = `You are ${chatData.case_id.agent_id.name}, ${chatData.case_id.agent_id.position || 'an AI assistant'}.
-
-Your role: ${chatData.case_id.agent_id.prompt || 'Help the user with their case study.'}
-
-Case Context:
-Title: ${chatData.case_id.title}
-Description: ${chatData.case_id.description}
-Story: ${chatData.case_id.story}
-
-Previous conversation:
-${conversationHistory}
-
-Instructions:
-- Stay in character as ${chatData.case_id.agent_id.name}
-- Provide helpful, contextual responses based on the case study
-- Be professional and supportive
-- Draw from the case context when relevant
-- Maintain continuity with the previous conversation`;
+		// Prepare the templated prompt
+		const systemPrompt = replaceTemplateVars(chatResponsePrompt, {
+			agentName: chatData.case_id.agent_id.name || 'AI Assistant',
+			agentPosition: chatData.case_id.agent_id.position || 'an AI assistant',
+			agentPrompt: chatData.case_id.agent_id.prompt || 'Help the user with their case study.',
+			caseTitle: chatData.case_id.title || 'Case Study',
+			caseDescription: chatData.case_id.description || '',
+			caseStory: chatData.case_id.story || '',
+			conversationHistory: conversationHistory || 'No previous conversation.',
+		});
 
 		// Create OpenAI client with API key
 		const openai = createOpenAI({
@@ -129,10 +131,11 @@ Instructions:
 		});
 
 		// Update the chat with the new agent message
+		const timestamp = new Date().toISOString();
 		const newMessage: Message = {
 			type: 'agent',
 			text: aiResponse,
-			timestamp: new Date().toISOString(),
+			timestamp,
 		};
 
 		const updatedMessages = [...messages, newMessage];
@@ -152,10 +155,13 @@ Instructions:
 			});
 		}
 
-		return {
+		// Return structured response
+		return generateResponseOutput.parse({
 			success: true,
 			message: aiResponse,
-		};
+			timestamp,
+			agent_name: chatData.case_id.agent_id.name,
+		});
 	}
 	catch (error) {
 		console.error('Error generating AI response:', error);

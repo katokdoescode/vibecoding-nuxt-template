@@ -3,6 +3,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { requireAuth } from '~/server/utils/requireAuth';
 import { serverSupabaseServiceRole } from '#supabase/server';
+import { caseAssessmentPrompt, replaceTemplateVars } from '~/server/utils/prompts';
 import type { Database } from '~/database.types';
 import type { Message } from '~/server/types';
 
@@ -10,7 +11,43 @@ const submitCaseSchema = z.object({
 	finalReflection: z.string().optional(),
 });
 
-export default defineEventHandler(async (event) => {
+// Zod schema for assessment response from AI
+const assessmentResponseSchema = z.object({
+	assessment_percentage: z.number().min(0).max(100),
+	detailed_feedback: z.object({
+		strengths: z.array(z.string()),
+		areas_for_improvement: z.array(z.string()),
+		growth_points: z.array(z.string()),
+		reached_goals: z.array(z.string()),
+		overall_performance: z.string(),
+	}),
+	criteria_analysis: z.record(z.object({
+		score_percentage: z.number().min(0).max(100),
+		feedback: z.string(),
+	})),
+	recommendations: z.array(z.string()),
+	assessment_rationale: z.string(),
+});
+
+// Zod schema for the structured API response
+const submitCaseOutput = z.object({
+	success: z.boolean(),
+	assessment_percentage: z.number(),
+	status: z.string(),
+	detailed_feedback: z.object({
+		strengths: z.array(z.string()),
+		areas_for_improvement: z.array(z.string()),
+		growth_points: z.array(z.string()),
+		reached_goals: z.array(z.string()),
+		overall_performance: z.string(),
+	}),
+	message: z.string(),
+	timestamp: z.string(),
+});
+
+type SubmitCaseOutput = z.infer<typeof submitCaseOutput>;
+
+export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 	const user = await requireAuth(event);
 	const chatIdParam = getRouterParam(event, 'id');
 
@@ -87,65 +124,24 @@ export default defineEventHandler(async (event) => {
 
 		// Build conversation history for assessment
 		const conversationHistory = messages.map(msg =>
-			`${msg.type === 'user' ? 'Student' : chatData.case_id.agent_id.name}: ${msg.text}`,
+			`${msg.type === 'user' ? 'Student' : chatData.case_id.agent_id.name || 'Agent'}: ${msg.text}`,
 		).join('\n\n');
 
-		// Create comprehensive assessment prompt based on the rubric pipeline
-		const assessmentPrompt = `You are an expert educational assessor conducting a comprehensive case study evaluation.
+		// Prepare the templated assessment prompt
+		const finalReflectionSection = finalReflection
+			? `STUDENT'S FINAL REFLECTION:\n${finalReflection}\n`
+			: '';
 
-CASE CONTEXT:
-Title: ${chatData.case_id.title}
-Description: ${chatData.case_id.description}
-Story: ${chatData.case_id.story}
-
-LEARNING OUTCOMES & CRITERIA:
-${criteriaOutcomes ? JSON.stringify(criteriaOutcomes, null, 2) : 'General case study competencies'}
-
-CONVERSATION HISTORY:
-${conversationHistory}
-
-${finalReflection ? `STUDENT'S FINAL REFLECTION:\n${finalReflection}\n` : ''}
-
-ASSESSMENT FRAMEWORK:
-Following evidence-based rubric development principles, conduct a holistic assessment that includes:
-
-1. ANALYTICAL RUBRIC EVALUATION:
-   - Assess each learning outcome/criteria systematically
-   - Use descriptors ranging from exemplary (90-100%) to inadequate (0-20%)
-   - Consider: understanding, application, analysis, synthesis, evaluation
-
-2. COMPREHENSIVE FEEDBACK ANALYSIS:
-   • BAD POINTS/AREAS FOR IMPROVEMENT: Identify specific weaknesses, misconceptions, or missed opportunities
-   • REACHED GOALS/STRENGTHS: Highlight demonstrated competencies and successful applications
-   • GROWTH POINTS: Suggest specific areas for development and next steps
-   • OVERALL PERFORMANCE: Holistic view of student's engagement and learning
-
-3. EVIDENCE-BASED SCORING:
-   - Analyze student responses against learning objectives
-   - Consider depth of understanding, critical thinking, and practical application
-   - Weight different aspects based on case complexity and learning goals
-
-Provide your assessment in this EXACT JSON format:
-{
-  "assessment_percentage": <number between 0-100>,
-  "detailed_feedback": {
-    "strengths": ["<strength 1>", "<strength 2>", ...],
-    "areas_for_improvement": ["<improvement 1>", "<improvement 2>", ...],
-    "growth_points": ["<growth point 1>", "<growth point 2>", ...],
-    "reached_goals": ["<goal 1>", "<goal 2>", ...],
-    "overall_performance": "<comprehensive performance summary>"
-  },
-  "criteria_analysis": {
-    "<criteria_name>": {
-      "score_percentage": <0-100>,
-      "feedback": "<specific feedback for this criteria>"
-    }
-  },
-  "recommendations": ["<recommendation 1>", "<recommendation 2>", ...],
-  "assessment_rationale": "<explanation of how the percentage was determined>"
-}
-
-Be thorough, fair, and constructive in your assessment. The percentage should reflect genuine learning achievement against the established criteria.`;
+		const assessmentPromptText = replaceTemplateVars(caseAssessmentPrompt, {
+			caseTitle: chatData.case_id.title || 'Case Study',
+			caseDescription: chatData.case_id.description || '',
+			caseStory: chatData.case_id.story || '',
+			criteriaOutcomes: criteriaOutcomes
+				? JSON.stringify(criteriaOutcomes, null, 2)
+				: 'General case study competencies',
+			conversationHistory: conversationHistory || 'No conversation history available.',
+			finalReflectionSection,
+		});
 
 		// Create OpenAI client
 		const openai = createOpenAI({
@@ -155,7 +151,7 @@ Be thorough, fair, and constructive in your assessment. The percentage should re
 		// Generate comprehensive assessment
 		const { text: assessmentResponse } = await generateText({
 			model: openai('gpt-4-turbo'),
-			prompt: assessmentPrompt,
+			prompt: assessmentPromptText,
 			maxTokens: 2000,
 			temperature: 0.3, // Lower temperature for more consistent assessment
 		});
@@ -168,7 +164,10 @@ Be thorough, fair, and constructive in your assessment. The percentage should re
 			if (!jsonMatch) {
 				throw new Error('No JSON found in assessment response');
 			}
-			assessmentData = JSON.parse(jsonMatch[0]);
+			const rawAssessment = JSON.parse(jsonMatch[0]);
+
+			// Validate using Zod schema
+			assessmentData = assessmentResponseSchema.parse(rawAssessment);
 		}
 		catch (parseError) {
 			console.error('Failed to parse assessment JSON:', parseError);
@@ -178,7 +177,7 @@ Be thorough, fair, and constructive in your assessment. The percentage should re
 			});
 		}
 
-		const assessmentPercentage = Math.max(0, Math.min(100, assessmentData.assessment_percentage || 0));
+		const assessmentPercentage = Math.max(0, Math.min(100, assessmentData.assessment_percentage));
 
 		// Determine status based on assessment percentage
 		let newStatus: string;
@@ -192,35 +191,8 @@ Be thorough, fair, and constructive in your assessment. The percentage should re
 			newStatus = 'passed';
 		}
 
-		// Create assessment summary message for the chat
-		const assessmentSummary = `## Assessment Complete! 🎓
-
-**Overall Score: ${assessmentPercentage}%**
-**Status: ${newStatus.replace('_', ' ').toUpperCase()}**
-
-### Strengths:
-${assessmentData.detailed_feedback.strengths.map((s: string) => `• ${s}`).join('\n')}
-
-### Areas for Improvement:
-${assessmentData.detailed_feedback.areas_for_improvement.map((a: string) => `• ${a}`).join('\n')}
-
-### Growth Points:
-${assessmentData.detailed_feedback.growth_points.map((g: string) => `• ${g}`).join('\n')}
-
-### Overall Performance:
-${assessmentData.detailed_feedback.overall_performance}
-
-### Recommendations:
-${assessmentData.recommendations.map((r: string) => `• ${r}`).join('\n')}`;
-
 		// Add assessment message to chat
-		const assessmentMessage: Message = {
-			type: 'agent',
-			text: assessmentSummary,
-			timestamp: new Date().toISOString(),
-		};
-
-		const updatedMessages = [...messages, assessmentMessage];
+		const timestamp = new Date().toISOString();
 
 		// Update chat with assessment results
 		const { error: updateError } = await supabase
@@ -228,7 +200,6 @@ ${assessmentData.recommendations.map((r: string) => `• ${r}`).join('\n')}`;
 			.update({
 				status: newStatus,
 				assessment: assessmentPercentage,
-				messages: updatedMessages,
 				learning_outcomes: assessmentData,
 			})
 			.eq('id', chatId);
@@ -241,13 +212,15 @@ ${assessmentData.recommendations.map((r: string) => `• ${r}`).join('\n')}`;
 			});
 		}
 
-		return {
+		// Return structured response
+		return submitCaseOutput.parse({
 			success: true,
 			assessment_percentage: assessmentPercentage,
 			status: newStatus,
 			detailed_feedback: assessmentData.detailed_feedback,
 			message: 'Case successfully assessed and submitted!',
-		};
+			timestamp,
+		});
 	}
 	catch (error) {
 		console.error('Error in case assessment:', error);
