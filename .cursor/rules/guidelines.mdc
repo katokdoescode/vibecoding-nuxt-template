@@ -68,7 +68,6 @@ Key relationships:
 - Uses **Lucide** icon collection exclusively
 - Icon naming patterns:
   - `lucide:icon-name` (e.g., `lucide:clock`, `lucide:x`)
-  - `i-lucide-icon-name` (alternative format)
 - Usage: `<Icon name="lucide:clock" />` or `<Icon name="i-lucide-arrow-left" />`
 - Icons are server-bundled for performance
 - Always include `aria-hidden="true"` for decorative icons

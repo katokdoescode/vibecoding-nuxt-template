@@ -8,7 +8,7 @@
 					size="sm"
 					href="/"
 				>
-					<Icon name="i-lucide-arrow-left" />
+					<Icon name="lucide:arrow-left" />
 					Back to cases
 				</NuxtLink>
 			</div>
@@ -31,7 +31,7 @@
 		>
 			<UAlert
 				variant="destructive"
-				icon="i-lucide-alert-triangle"
+				icon="lucide:alert-triangle"
 			>
 				<UAlertTitle>
 					Failed to load case
@@ -73,7 +73,7 @@
 									@click="showLearningOutcomes = true"
 								>
 									<Icon
-										name="i-lucide-graduation-cap"
+										name="lucide:graduation-cap"
 										class="mr-2 h-4 w-4"
 									/>
 									View Learning Outcomes

@@ -22,6 +22,7 @@
 				<USheetHeader>
 					<USheetTitle>Actions</USheetTitle>
 				</USheetHeader>
+				<ColorMode />
 				<div class="mt-6 space-y-4">
 					<div v-if="!user">
 						<UButton

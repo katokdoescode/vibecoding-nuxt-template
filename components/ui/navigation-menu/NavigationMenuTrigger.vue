@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
 import { reactiveOmit } from '@vueuse/core';
-// Removed lucide-vue-next import - using Nuxt Icon instead
 import {
 	NavigationMenuTrigger,
 	type NavigationMenuTriggerProps,

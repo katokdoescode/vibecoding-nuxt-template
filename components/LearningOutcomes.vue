@@ -32,7 +32,7 @@
 				<div class="p-4 border rounded-lg">
 					<h4 class="font-semibold mb-2 flex items-center">
 						<Icon
-							name="i-lucide-lightbulb"
+							name="lucide:lightbulb"
 							class="h-4 w-4 mr-2"
 						/>
 						Assessment Summary
@@ -49,7 +49,7 @@
 			<UCardHeader>
 				<UCardTitle class="flex items-center">
 					<Icon
-						name="i-lucide-bar-chart-3"
+						name="lucide:bar-chart-3"
 						class="h-5 w-5 mr-2"
 					/>
 					Performance Analysis
@@ -91,7 +91,7 @@
 			<UCardHeader>
 				<UCardTitle class="flex items-center">
 					<Icon
-						name="i-lucide-message-circle"
+						name="lucide:message-circle"
 						class="h-5 w-5 mr-2"
 					/>
 					Detailed Feedback
@@ -102,7 +102,7 @@
 				<div v-if="learningOutcomes.detailed_feedback.strengths.length > 0">
 					<h4 class="font-semibold text-green-700 dark:text-green-400 mb-3 flex items-center">
 						<Icon
-							name="i-lucide-check-circle"
+							name="lucide:check-circle"
 							class="h-4 w-4 mr-2"
 						/>
 						Strengths
@@ -114,7 +114,7 @@
 							class="flex items-start gap-2 text-sm"
 						>
 							<Icon
-								name="i-lucide-plus"
+								name="lucide:plus"
 								class="h-3 w-3 mt-1 text-green-500 shrink-0"
 							/>
 							{{ strength }}
@@ -126,7 +126,7 @@
 				<div v-if="learningOutcomes.detailed_feedback.reached_goals.length > 0">
 					<h4 class="font-semibold text-blue-700 dark:text-blue-400 mb-3 flex items-center">
 						<Icon
-							name="i-lucide-target"
+							name="lucide:target"
 							class="h-4 w-4 mr-2"
 						/>
 						Goals Achieved
@@ -138,7 +138,7 @@
 							class="flex items-start gap-2 text-sm"
 						>
 							<Icon
-								name="i-lucide-check"
+								name="lucide:check"
 								class="h-3 w-3 mt-1 text-blue-500 shrink-0"
 							/>
 							{{ goal }}
@@ -150,7 +150,7 @@
 				<div v-if="learningOutcomes.detailed_feedback.areas_for_improvement.length > 0">
 					<h4 class="font-semibold text-orange-700 dark:text-orange-400 mb-3 flex items-center">
 						<Icon
-							name="i-lucide-trending-up"
+							name="lucide:trending-up"
 							class="h-4 w-4 mr-2"
 						/>
 						Areas for Improvement
@@ -162,7 +162,7 @@
 							class="flex items-start gap-2 text-sm"
 						>
 							<Icon
-								name="i-lucide-arrow-up"
+								name="lucide:arrow-up"
 								class="h-3 w-3 mt-1 text-orange-500 shrink-0"
 							/>
 							{{ area }}
@@ -174,7 +174,7 @@
 				<div v-if="learningOutcomes.detailed_feedback.growth_points.length > 0">
 					<h4 class="font-semibold text-purple-700 dark:text-purple-400 mb-3 flex items-center">
 						<Icon
-							name="i-lucide-trending-up"
+							name="lucide:trending-up"
 							class="h-4 w-4 mr-2"
 						/>
 						Growth Points
@@ -186,7 +186,7 @@
 							class="flex items-start gap-2 text-sm"
 						>
 							<Icon
-								name="i-lucide-sprout"
+								name="lucide:sprout"
 								class="h-3 w-3 mt-1 text-purple-500 shrink-0"
 							/>
 							{{ point }}
@@ -198,7 +198,7 @@
 				<div class="p-4 bg-muted/20 rounded-lg">
 					<h4 class="font-semibold mb-2 flex items-center">
 						<Icon
-							name="i-lucide-star"
+							name="lucide:star"
 							class="h-4 w-4 mr-2"
 						/>
 						Overall Performance
@@ -215,7 +215,7 @@
 			<UCardHeader>
 				<UCardTitle class="flex items-center">
 					<Icon
-						name="i-lucide-compass"
+						name="lucide:compass"
 						class="h-5 w-5 mr-2"
 					/>
 					Recommendations

@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineNuxtConfig({
 
 	modules: [
+		'@nuxtjs/color-mode',
 		'@nuxt/eslint',
 		'@nuxt/image',
 		'@nuxt/fonts',
@@ -16,6 +17,9 @@ export default defineNuxtConfig({
 	],
 	devtools: { enabled: true },
 	css: ['~/assets/css/tailwind.css'],
+	colorMode: {
+		classSuffix: '',
+	},
 	runtimeConfig: {
 		openaiApiKey: process.env.OPENAI_API_KEY,
 	},

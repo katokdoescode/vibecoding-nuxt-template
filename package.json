@@ -25,6 +25,7 @@
     "@nuxtjs/supabase": "^1.5.2",
     "@tailwindcss/vite": "^4.1.10",
     "@unhead/vue": "^2.0.10",
+    "@vercel/analytics": "^1.5.0",
     "@vueuse/core": "^13.4.0",
     "ai": "^4.3.16",
     "class-variance-authority": "^0.7.1",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.51",
+    "@nuxtjs/color-mode": "^3.5.2",
     "lefthook": "^1.11.14"
   }
 }
