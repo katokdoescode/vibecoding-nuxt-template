@@ -7,11 +7,12 @@ export default defineEventHandler(async (event) => {
 		const user = await requireAuth(event);
 		const supabase = await serverSupabaseClient<Database>(event);
 
-		// Fetch all chats for the current user
+		// Fetch all chats for the current user, ordered by creation date
 		const { data: chats, error } = await supabase
 			.from('chats')
-			.select('case_id, status, id')
-			.eq('user_id', user.id);
+			.select('case_id, status, id, created_at')
+			.eq('user_id', user.id)
+			.order('created_at', { ascending: false });
 
 		if (error) {
 			console.error('Error fetching user case statuses:', error);
@@ -21,16 +22,45 @@ export default defineEventHandler(async (event) => {
 			});
 		}
 
-		// Create a map of case_id to chat status
+		// Create a map of case_id to the most relevant chat status
 		const caseStatuses: Record<string, { status: string; chatId: number }> = {};
 
 		if (chats) {
+			// Group chats by case_id
+			const chatsByCase = new Map<string, typeof chats>();
+
 			chats.forEach((chat) => {
 				if (chat.case_id) {
-					caseStatuses[chat.case_id] = {
-						status: chat.status,
-						chatId: chat.id,
+					if (!chatsByCase.has(chat.case_id)) {
+						chatsByCase.set(chat.case_id, []);
+					}
+					chatsByCase.get(chat.case_id)!.push(chat);
+				}
+			});
+
+			// For each case, determine the most relevant chat to show
+			chatsByCase.forEach((caseChats, caseId) => {
+				// First, look for incomplete chats (created, in progress)
+				const incompleteChat = caseChats.find(chat =>
+					['created', 'in progress'].includes(chat.status),
+				);
+
+				if (incompleteChat) {
+					// Show the most recent incomplete chat
+					caseStatuses[caseId] = {
+						status: incompleteChat.status,
+						chatId: incompleteChat.id,
 					};
+				}
+				else {
+					// No incomplete chats, show the most recent completed chat
+					const mostRecentChat = caseChats[0]; // Already ordered by created_at desc
+					if (mostRecentChat) {
+						caseStatuses[caseId] = {
+							status: mostRecentChat.status,
+							chatId: mostRecentChat.id,
+						};
+					}
 				}
 			});
 		}

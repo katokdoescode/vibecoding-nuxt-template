@@ -55,13 +55,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Case } from '~/server/types';
+import { type Case, ChatStatus } from '~/server/types';
 import CaseCard from '@/components/CaseCard.vue';
 import LockedCaseCard from '@/components/LockedCaseCard.vue';
 
 interface CaseWithStatus extends Case {
 	isAvailable: boolean;
-	status?: string;
+	status?: ChatStatus;
 	chatId?: number;
 	lockReason?: string;
 }
@@ -87,7 +87,7 @@ const { data: caseStatuses, pending: statusPending, refresh: refreshStatuses } =
 		}
 
 		try {
-			return await $fetch<Record<string, { status: string; chatId: number }>>('/api/user-case-statuses');
+			return await $fetch<Record<string, { status: ChatStatus; chatId: number }>>('/api/user-case-statuses');
 		}
 		catch (error) {
 			console.warn('Failed to fetch user case statuses:', error);
@@ -95,7 +95,7 @@ const { data: caseStatuses, pending: statusPending, refresh: refreshStatuses } =
 		}
 	},
 	{
-		default: () => ({} as Record<string, { status: string; chatId: number }>),
+		default: () => ({} as Record<string, { status: ChatStatus; chatId: number }>),
 		server: false,
 	},
 );
@@ -132,9 +132,9 @@ const orderedCases = computed(() => {
 	const processedIds = new Set<string>();
 
 	// Helper function to check if a case has been completed (assessed)
-	const isCaseCompleted = (status?: string): boolean => {
+	const isCaseCompleted = (status?: ChatStatus): boolean => {
 		if (!status) return false;
-		return ['submitted', 'passed', 'can_be_improved', 'not_passed'].includes(status);
+		return [ChatStatus.SUBMITTED, ChatStatus.PASSED, ChatStatus.CAN_BE_IMPROVED, ChatStatus.NOT_PASSED].includes(status);
 	};
 
 	// Add cases in dependency order
@@ -170,24 +170,6 @@ const orderedCases = computed(() => {
 	// Process root cases first (always available)
 	rootCases.forEach(caseItem => addCaseAndDependents(caseItem, true));
 
-	// Fill remaining slots with placeholder locked cases
-	while (result.length < 9) {
-		result.push({
-			id: '',
-			title: null,
-			description: null,
-			difficulty: null,
-			can_be_done_after: null,
-			agent: null,
-			story: null,
-			criteria_outcomes: null,
-			created_at: '',
-			slug: '',
-			isAvailable: false,
-			lockReason: 'Coming soon',
-		});
-	}
-
-	return result.slice(0, 9);
+	return result;
 });
 </script>

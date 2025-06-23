@@ -48,61 +48,113 @@
 			class="flex-1 flex flex-col lg:overflow-hidden overflow-y-auto px-4 pb-2"
 		>
 			<!-- Case Story and Chat - Full height layout -->
-			<div class="flex-1 lg:overflow-hidden overflow-y-auto">
-				<div class="flex flex-col lg:flex-row lg:gap-2 h-full">
-					<!-- Left side: Case story -->
-					<div class="flex-1 h-full max-lg:max-h-[70vh]">
-						<div class="py-6 h-full flex flex-col">
-							<CaseStory
-								:study-case="studyCase"
-								:disabled="!chat || isAssessed(chat.status)"
-								:is-submitting="isSubmitting"
-								:submit-text="getSubmitButtonText(chat?.status)"
-								@submit="submitChat"
-							/>
-
-							<!-- Learning Outcomes Button -->
-							<div
-								v-if="isAssessed(chat?.status) && chat?.learning_outcomes"
-								class="pt-4 border-t border-border mt-4"
-							>
-								<UButton
-									variant="outline"
-									size="sm"
-									class="w-full"
-									@click="showLearningOutcomes = true"
+			<div class="flex-1 flex flex-col lg:flex-row lg:gap-2 h-full lg:overflow-hidden overflow-y-auto">
+				<!-- Left side: Case story -->
+				<div class="flex-1 flex flex-col h-full msx-lg:max-h-[70vh]">
+					<div class="h-full py-6 flex flex-col">
+						<CaseStory
+							v-if="chat"
+							:study-case="studyCase"
+							:disabled="isAssessed"
+							:is-submitting="isSubmitting"
+							:submit-text="getSubmitButtonText(chat?.status)"
+							:can-be-submitted="canBeSubmitted"
+							@submit="submitChat"
+						>
+							<!-- Case Actions -->
+							<template #actions>
+								<div
+									v-if="shouldShowActions"
+									class="pt-4 border-t border-border mt-4 space-y-3"
 								>
-									<Icon
-										name="lucide:graduation-cap"
-										class="mr-2 h-4 w-4"
-									/>
-									View Learning Outcomes
-								</UButton>
-							</div>
-						</div>
+									<!-- Learning Outcomes Button (for completed chats) -->
+									<UButton
+										v-if="isAssessed && chat?.learning_outcomes"
+										variant="outline"
+										size="sm"
+										class="w-full"
+										@click="showLearningOutcomes = true"
+									>
+										<Icon
+											name="lucide:graduation-cap"
+											class="mr-2 h-4 w-4"
+										/>
+										View Learning Outcomes
+									</UButton>
+
+									<!-- Chat History Button (show if has completed history) -->
+									<UButton
+										v-if="chatStatus && chatStatus.hasCompletedHistory"
+										variant="outline"
+										size="sm"
+										class="w-full"
+										@click="showChatHistory = true"
+									>
+										<Icon
+											name="lucide:history"
+											class="mr-2 h-4 w-4"
+										/>
+										View Chat History ({{ chatStatus.totalChats }} chats)
+									</UButton>
+
+									<!-- Start New Chat Button (when no active chat but has history) -->
+									<UButton
+										v-if="isAssessed"
+										variant="default"
+										size="sm"
+										class="w-full"
+										:disabled="isStartingAgain"
+										@click="startCaseAgain"
+									>
+										<Icon
+											name="lucide:play-circle"
+											class="mr-2 h-4 w-4"
+											:class="{ 'animate-spin': isStartingAgain }"
+										/>
+										{{ isStartingAgain ? 'Starting...' : 'Start New Chat' }}
+									</UButton>
+								</div>
+							</template>
+						</CaseStory>
 					</div>
+				</div>
 
-					<!-- Right side: Chat Interface -->
-					<div class="flex flex-1 flex-col h-full relative lg:overflow-hidden">
-						<div class="lg:overflow-hidden flex flex-1">
-							<ChatInterface
-								v-model="newMessage"
-								:agent="studyCase.agent_id"
-								:messages="chat?.messages || []"
-								:status="chat?.status || 'created'"
-								:is-typing="isTyping"
-								:disabled="isAssessed(chat?.status)"
-								:is-sending="isSending"
-								@send="sendMessage"
-							/>
-						</div>
-
-						<!-- Auth Overlay for unauthenticated users -->
-						<AuthOverlay
-							v-if="!user"
-							:return-url="$route.fullPath"
+				<!-- Right side: Chat Interface -->
+				<div class="flex flex-1 flex-col h-full relative lg:overflow-hidden">
+					<div class="lg:overflow-hidden flex flex-1">
+						<!-- Active Chat Interface -->
+						<ChatInterface
+							v-if="chat"
+							v-model="newMessage"
+							:agent="studyCase.agent_id"
+							:messages="chat.messages || []"
+							:status="chat.status || 'created'"
+							:is-typing="isTyping"
+							:disabled="isAssessed"
+							:is-sending="isSending"
+							@send="sendMessage"
 						/>
+
+						<!-- Loading State -->
+						<UCard
+							v-else-if="!chatStatus"
+							class="flex-1 flex flex-col items-center justify-center"
+						>
+							<UCardContent class="text-center">
+								<Icon
+									name="lucide:refresh-cw"
+									class="animate-spin h-8 w-8 mx-auto mb-4"
+								/>
+								<p>Loading chat...</p>
+							</UCardContent>
+						</UCard>
 					</div>
+
+					<!-- Auth Overlay for unauthenticated users -->
+					<AuthOverlay
+						v-if="!user"
+						:return-url="$route.fullPath"
+					/>
 				</div>
 			</div>
 		</div>
@@ -134,30 +186,41 @@
 				</div>
 			</UDialogContent>
 		</UDialog>
+
+		<!-- Chat History Modal -->
+		<UDialog v-model:open="showChatHistory">
+			<UDialogContent class="lg:max-w-[90vw] lg:w-[90vw] max-h-[90vh] overflow-hidden flex flex-col">
+				<UDialogHeader>
+					<UDialogTitle>Chat History</UDialogTitle>
+					<UDialogDescription>
+						View all your previous conversations for this case.
+					</UDialogDescription>
+				</UDialogHeader>
+
+				<div class="flex-1 overflow-y-auto p-1">
+					<ChatHistoryView
+						v-if="studyCase"
+						:case-id="studyCase.id"
+						:current-chat-id="chat?.id"
+					/>
+				</div>
+
+				<div class="flex justify-end gap-2 pt-4 border-t">
+					<UButton
+						variant="outline"
+						@click="showChatHistory = false"
+					>
+						Close
+					</UButton>
+				</div>
+			</UDialogContent>
+		</UDialog>
 	</div>
 </template>
 
 <script setup lang="ts">
 import type { Database } from '~/database.types';
-import type { Chat } from '~/server/types';
-
-// Types
-interface CaseWithAgent {
-	id: string;
-	title: string | null;
-	description: string | null;
-	story: string | null;
-	slug: string;
-	agent: string | null;
-	agent_id?: {
-		id: string;
-		name: string;
-		position: string | null;
-		prompt: string | null;
-	} | null;
-}
-
-type ChatData = Pick<Chat, 'id' | 'status' | 'messages' | 'learning_outcomes'>;
+import { ChatStatus, type Case, type Chat } from '~/server/types';
 
 // Page metadata - Use case layout and no auth middleware, we handle auth with overlay
 definePageMeta({
@@ -174,14 +237,24 @@ const isTyping = ref(false);
 const isSending = ref(false);
 const isSubmitting = ref(false);
 const showLearningOutcomes = ref(false);
+const showChatHistory = ref(false);
+const isStartingAgain = ref(false);
 
 // Fetch case data
-const { data: studyCase, error, pending } = await useFetch<CaseWithAgent>(`/api/cases/${slug}`);
+const { data: studyCase, error, pending } = await useFetch<Case>(`/api/cases/${slug}`);
 
 // Chat state
-const chat = ref<ChatData | null>(null);
+const chat = ref<Chat | null>(null);
 const supabase = useSupabaseClient<Database>();
 const user = useSupabaseUser();
+
+// Chat status state
+const chatStatus = ref<{
+	activeChat: Chat | null;
+	hasHistory: boolean;
+	hasCompletedHistory: boolean;
+	totalChats: number;
+} | null>(null);
 
 // Store current chat ID for channel cleanup
 const currentChatId = ref<number | null>(null);
@@ -189,13 +262,13 @@ const currentChatId = ref<number | null>(null);
 // Initialize chat when case is loaded
 watchEffect(async () => {
 	if (studyCase.value && user.value) {
-		await initializeChat();
+		await checkChatStatus();
 	}
 });
 
 // Show learning outcomes overlay when they become available
 watch(() => chat.value?.learning_outcomes, (newOutcomes) => {
-	if (newOutcomes && isAssessed(chat.value?.status)) {
+	if (newOutcomes && isAssessed.value) {
 		showLearningOutcomes.value = true;
 	}
 }, { immediate: true });
@@ -207,39 +280,85 @@ onUnmounted(() => {
 	}
 });
 
-// Initialize chat
-async function initializeChat() {
+// Check chat status and initialize if needed
+async function checkChatStatus() {
 	if (!studyCase.value || !user.value) return;
 
 	try {
-		// Check if chat exists, create if not
-		const response = await $fetch<ChatData>('/api/chats/create', {
+		// Check current chat status and history
+		const response = await $fetch<{
+			activeChat: Chat | null;
+			hasHistory: boolean;
+			hasCompletedHistory: boolean;
+			totalChats: number;
+		}>('/api/chats/check-status', {
+			query: { case_id: studyCase.value.id },
+		});
+
+		chatStatus.value = response;
+
+		// If there's an active chat, use it
+		if (response.activeChat) {
+			chat.value = response.activeChat;
+			currentChatId.value = response.activeChat.id;
+			await subscribeToChat(response.activeChat.id);
+		}
+
+		// If no active chat and no history, auto-create first chat
+		else if (!response.hasHistory) {
+			await createNewChat();
+		}
+	}
+	catch (error) {
+		console.error('Failed to check chat status:', error);
+	}
+}
+
+// Create new chat
+async function createNewChat() {
+	if (!studyCase.value || !user.value) return;
+
+	try {
+		const response = await $fetch<Chat>('/api/chats/create', {
 			method: 'POST',
 			body: {
 				case_id: studyCase.value.id,
 				agent_id: studyCase.value.agent,
+				force_new: true,
 			},
 		});
 
 		chat.value = response;
 		currentChatId.value = response.id;
+		await subscribeToChat(response.id);
 
-		// Subscribe to chat updates
-		supabase
-			.channel(`chat-${response.id}`)
-			.on('postgres_changes', {
-				event: 'UPDATE',
-				schema: 'public',
-				table: 'chats',
-				filter: `id=eq.${response.id}`,
-			}, (payload) => {
-				chat.value = payload.new as ChatData;
-			})
-			.subscribe();
+		// Refresh chat status
+		await checkChatStatus();
 	}
 	catch (error) {
-		console.error('Failed to initialize chat:', error);
+		console.error('Failed to create new chat:', error);
 	}
+}
+
+// Subscribe to chat updates
+async function subscribeToChat(chatId: number) {
+	// Cleanup old subscription
+	if (currentChatId.value && currentChatId.value !== chatId) {
+		supabase.removeAllChannels();
+	}
+
+	// Subscribe to new chat updates
+	supabase
+		.channel(`chat-${chatId}`)
+		.on('postgres_changes', {
+			event: 'UPDATE',
+			schema: 'public',
+			table: 'chats',
+			filter: `id=eq.${chatId}`,
+		}, (payload) => {
+			chat.value = payload.new as Chat;
+		})
+		.subscribe();
 }
 
 // Send message
@@ -302,16 +421,13 @@ async function sendMessage(messageText?: string) {
 
 // Submit chat with comprehensive assessment
 async function submitChat() {
-	if (!chat.value || isSubmitting.value) return;
+	if (!chat.value || isSubmitting.value || !chat.value.messages.length) return;
 
 	isSubmitting.value = true;
 
 	try {
 		const result = await $fetch(`/api/chats/${chat.value.id}/submit-case`, {
 			method: 'POST',
-			body: {
-				finalReflection: '', // Could be enhanced to collect user's final reflection
-			},
 		});
 
 		// Show success notification with assessment results
@@ -329,23 +445,63 @@ async function submitChat() {
 	}
 }
 
-// Helper functions for assessment status
-function isAssessed(status?: string): boolean {
-	if (!status) return false;
-	return ['submitted', 'passed', 'can_be_improved', 'not_passed'].includes(status);
+// Start case again - create a new chat
+async function startCaseAgain() {
+	if (isStartingAgain.value) return;
+
+	isStartingAgain.value = true;
+
+	try {
+		await createNewChat();
+		console.log('Started new chat successfully');
+	}
+	catch (error) {
+		console.error('Failed to start case again:', error);
+	}
+	finally {
+		isStartingAgain.value = false;
+	}
 }
 
-function getSubmitButtonText(status?: string): string {
+// Computed properties
+const shouldShowActions = computed(() => {
+	// Show if there are learning outcomes to view
+	if (isAssessed.value && chat.value?.learning_outcomes) return true;
+
+	// Wait for chatStatus to be loaded before checking these conditions
+	if (!chatStatus.value) return false;
+
+	// Show if no active chat but has history (start new chat button)
+	if (!chat.value && chatStatus.value.hasHistory) return true;
+
+	// Show if has completed history (history button)
+	if (chatStatus.value.hasCompletedHistory) return true;
+
+	return false;
+});
+
+const canBeSubmitted = computed(() => {
+	if (!chat.value?.status || !chat.value.messages.length) return false;
+	return true;
+});
+
+// Helper functions for assessment status
+const isAssessed = computed(() => {
+	if (!chat.value?.status) return false;
+	return [ChatStatus.SUBMITTED, ChatStatus.PASSED, ChatStatus.CAN_BE_IMPROVED, ChatStatus.NOT_PASSED].includes(chat.value.status);
+});
+
+function getSubmitButtonText(status?: ChatStatus): string {
 	if (!status) return 'Submit Case';
 
 	switch (status) {
-		case 'passed':
+		case ChatStatus.PASSED:
 			return 'Passed ✓';
-		case 'can_be_improved':
+		case ChatStatus.CAN_BE_IMPROVED:
 			return 'Can Be Improved';
-		case 'not_passed':
+		case ChatStatus.NOT_PASSED:
 			return 'Not Passed';
-		case 'submitted':
+		case ChatStatus.SUBMITTED:
 			return 'Submitted';
 		default:
 			return 'Submit Case';

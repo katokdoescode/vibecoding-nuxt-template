@@ -7,10 +7,6 @@ import { caseAssessmentPrompt, replaceTemplateVars } from '~/server/utils/prompt
 import type { Database } from '~/database.types';
 import type { Message } from '~/server/types';
 
-const submitCaseSchema = z.object({
-	finalReflection: z.string().optional(),
-});
-
 // Zod schema for assessment response from AI
 const assessmentResponseSchema = z.object({
 	assessment_percentage: z.number().min(0).max(100),
@@ -65,9 +61,6 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 			statusMessage: 'Invalid chat ID',
 		});
 	}
-
-	const body = await readBody(event);
-	const { finalReflection } = submitCaseSchema.parse(body);
 
 	const { openaiApiKey } = useRuntimeConfig();
 
@@ -128,10 +121,6 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 		).join('\n\n');
 
 		// Prepare the templated assessment prompt
-		const finalReflectionSection = finalReflection
-			? `STUDENT'S FINAL REFLECTION:\n${finalReflection}\n`
-			: '';
-
 		const assessmentPromptText = replaceTemplateVars(caseAssessmentPrompt, {
 			caseTitle: chatData.case_id.title || 'Case Study',
 			caseDescription: chatData.case_id.description || '',
@@ -140,7 +129,6 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 				? JSON.stringify(criteriaOutcomes, null, 2)
 				: 'General case study competencies',
 			conversationHistory: conversationHistory || 'No conversation history available.',
-			finalReflectionSection,
 		});
 
 		// Create OpenAI client
@@ -201,6 +189,7 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 				status: newStatus,
 				assessment: assessmentPercentage,
 				learning_outcomes: assessmentData,
+				is_archived: true,
 			})
 			.eq('id', chatId);
 

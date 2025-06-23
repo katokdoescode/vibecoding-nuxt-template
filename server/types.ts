@@ -50,13 +50,25 @@ export type CriteriaOutcomes = {
 	technical_team_leadership: CompetencyFeedback;
 };
 
-export type Case = Omit<RawCase, 'criteria_outcomes'> & {
+export enum ChatStatus {
+	CREATED = 'created',
+	IN_PROGRESS = 'in progress',
+	SUBMITTED = 'submitted',
+	COMPLETED = 'completed',
+	NOT_PASSED = 'not_passed',
+	PASSED = 'passed',
+	CAN_BE_IMPROVED = 'can_be_improved',
+}
+
+export type Case = Omit<RawCase, 'criteria_outcomes' | 'agent_id'> & {
 	criteria_outcomes: CriteriaOutcomes | null;
+	agent_id: Agent | null;
 };
 
-export type Chat = Omit<RawChat, 'learning_outcomes' | 'messages'> & {
+export type Chat = Omit<RawChat, 'learning_outcomes' | 'messages' | 'status'> & {
 	learning_outcomes: LearningOutcomes | null;
 	messages: Message[];
+	status: ChatStatus;
 };
 
 export type ExtendedChat = Omit<Chat, 'case_id' | 'agent_id' | 'user_id'> & {

@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
 	const user = await requireAuth(event);
 	const body = await readBody(event);
 
-	const { case_id, agent_id } = body;
+	const { case_id, agent_id, force_new = false } = body;
 
 	if (!case_id || !agent_id) {
 		throw createError({
@@ -17,16 +17,21 @@ export default defineEventHandler(async (event) => {
 
 	const supabase = await serverSupabaseClient<Database>(event);
 
-	// Check if chat already exists for this user and case
-	const { data: existingChat } = await supabase
-		.from('chats')
-		.select('*')
-		.eq('user_id', user.id)
-		.eq('case_id', case_id)
-		.single();
+	// If not forcing new chat, check if there's an existing active chat (not assessed)
+	if (!force_new) {
+		const { data: existingChat } = await supabase
+			.from('chats')
+			.select('*')
+			.eq('user_id', user.id)
+			.eq('case_id', case_id)
+			.not('status', 'in', '(submitted,passed,can_be_improved,not_passed)')
+			.order('created_at', { ascending: false })
+			.limit(1)
+			.single();
 
-	if (existingChat) {
-		return existingChat;
+		if (existingChat) {
+			return existingChat;
+		}
 	}
 
 	// Create new chat

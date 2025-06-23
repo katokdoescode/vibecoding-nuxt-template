@@ -12,47 +12,50 @@
 			</p>
 		</div>
 
-		<UCard class="overflow-auto flex-1 !py-0 mb-6">
+		<UCard class="h-full overflow-auto flex-1 !py-0 mb-6">
 			<UCardHeader class="pt-6">
 				<UCardTitle>Case Story</UCardTitle>
 			</UCardHeader>
-			<UCardContent class="pb-6">
+			<UCardContent
+				v-if="studyCase.story"
+				class="pb-6"
+			>
 				<MDC
 					class="story"
-					:value="studyCase.story || ''"
+					:value="studyCase.story"
+					tag="article"
 				/>
 			</UCardContent>
 		</UCard>
 
 		<UButton
-			:disabled="disabled || isSubmitting"
+			:disabled="disabled || isSubmitting || !canBeSubmitted"
 			class="w-full flex-shrink-0"
 			size="lg"
 			@click="$emit('submit')"
 		>
 			{{ isSubmitting ? 'Submitting...' : submitText }}
 		</UButton>
+		<slot name="actions" />
 	</div>
 </template>
 
 <script setup lang="ts">
-interface CaseData {
-	title: string | null;
-	description: string | null;
-	story: string | null;
-}
+import type { Case } from '~/server/types';
 
 interface Props {
-	studyCase: CaseData;
+	studyCase: Case;
 	disabled?: boolean;
 	isSubmitting?: boolean;
 	submitText?: string;
+	canBeSubmitted?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
 	disabled: false,
 	isSubmitting: false,
 	submitText: 'Submit Case',
+	canBeSubmitted: true,
 });
 
 defineEmits<{

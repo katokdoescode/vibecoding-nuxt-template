@@ -97,6 +97,7 @@ export type Database = {
 					case_id: string | null;
 					created_at: string;
 					id: number;
+					is_archived: boolean;
 					learning_outcomes: Json | null;
 					messages: Json[];
 					status: string;
@@ -109,6 +110,7 @@ export type Database = {
 					case_id?: string | null;
 					created_at?: string;
 					id?: number;
+					is_archived?: boolean;
 					learning_outcomes?: Json | null;
 					messages?: Json[];
 					status?: string;
@@ -121,6 +123,7 @@ export type Database = {
 					case_id?: string | null;
 					created_at?: string;
 					id?: number;
+					is_archived?: boolean;
 					learning_outcomes?: Json | null;
 					messages?: Json[];
 					status?: string;

@@ -28,6 +28,9 @@ export default defineNuxtConfig({
 		plugins: [
 			tailwindcss(),
 		],
+		optimizeDeps: {
+			include: ['debug'],
+		},
 	},
 	eslint: {
 		config: {
