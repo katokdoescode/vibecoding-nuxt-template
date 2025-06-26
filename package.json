@@ -1,10 +1,10 @@
 {
-  "name": "ai-role-player-tutor",
+  "name": "rolloo.app",
   "private": true,
   "type": "module",
-  "version": "0.0.1",
-  "description": "AI Role Player Tutor",
-  "author": "@katokdoescode",
+  "version": "0.0.2",
+  "description": "Rolloo.app - AI Role Player Tutor",
+  "author": "katokdoescode",
   "license": "MIT",
   "scripts": {
     "build": "nuxt build",

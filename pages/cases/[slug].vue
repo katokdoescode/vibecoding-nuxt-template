@@ -53,7 +53,7 @@
 				<div class="flex-1 flex flex-col h-full msx-lg:max-h-[70vh]">
 					<div class="h-full py-6 flex flex-col">
 						<CaseStory
-							v-if="chat"
+							v-if="chat || !user"
 							:study-case="studyCase"
 							:disabled="isAssessed"
 							:is-submitting="isSubmitting"
@@ -426,15 +426,9 @@ async function submitChat() {
 	isSubmitting.value = true;
 
 	try {
-		const result = await $fetch(`/api/chats/${chat.value.id}/submit-case`, {
+		await $fetch(`/api/chats/${chat.value.id}/submit-case`, {
 			method: 'POST',
 		});
-
-		// Show success notification with assessment results
-		console.log('Assessment complete:', result);
-
-		// The chat will be updated through Supabase realtime subscription
-		// so the UI will automatically reflect the new status and assessment message
 	}
 	catch (error) {
 		console.error('Failed to submit and assess case:', error);
@@ -453,7 +447,6 @@ async function startCaseAgain() {
 
 	try {
 		await createNewChat();
-		console.log('Started new chat successfully');
 	}
 	catch (error) {
 		console.error('Failed to start case again:', error);

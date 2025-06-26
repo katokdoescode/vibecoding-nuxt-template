@@ -56,8 +56,6 @@ export default defineEventHandler(async (event): Promise<GenerateResponseOutput>
 
 	try {
 		// Get chat details with case and agent information
-		console.log('Fetching chat data for ID:', chatId, 'User ID:', user.id);
-
 		const { data: chatData, error: chatError } = await supabase
 			.from('chats')
 			.select(`
@@ -94,11 +92,8 @@ export default defineEventHandler(async (event): Promise<GenerateResponseOutput>
 			});
 		}
 
-		console.log('Chat data retrieved successfully');
-
 		// Get conversation history
 		const messages = (chatData.messages as Message[]) || [];
-		console.log('Current message count:', messages.length);
 
 		// Build conversation context
 		const conversationHistory = messages.map(msg =>
