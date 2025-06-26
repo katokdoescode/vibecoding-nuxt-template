@@ -1,5 +1,5 @@
 <template>
-	<UCard class="h-full flex flex-col transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 border hover:border-primary/30 group cursor-pointer relative">
+	<UCard class="h-full flex flex-col motion-safe:transition-all motion-safe:duration-200 motion-reduce:transition-none hover:shadow-lg hover:shadow-primary/5 border hover:border-primary/30 group cursor-pointer relative">
 		<UCardHeader class="pb-3">
 			<div class="flex items-start justify-between mb-3">
 				<div class="flex items-center gap-2">
@@ -21,7 +21,7 @@
 					{{ index + 1 }}/9
 				</span>
 			</div>
-			<UCardTitle class="text-lg font-semibold leading-tight mb-2 group-hover:text-primary transition-colors flex items-center gap-2">
+			<UCardTitle class="text-lg font-semibold leading-tight mb-2 group-hover:text-primary motion-safe:transition-colors motion-reduce:transition-none flex items-center gap-2">
 				<Icon
 					v-if="status === 'submitted'"
 					name="lucide:check-circle"
@@ -42,14 +42,36 @@
 				/>
 				<span>{{ caseItem.title }}</span>
 			</UCardTitle>
-			<UCardDescription class="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+			<UCardDescription class="text-sm text-muted-foreground leading-relaxed line-clamp-3 mb-3">
 				{{ caseItem.description }}
-				<NuxtLink
-					:to="`/cases/${caseItem.slug}`"
-					class="absolute inset-0"
-					:aria-label="`View case ${caseItem.title}`"
-				/>
 			</UCardDescription>
+
+			<!-- Tags Section -->
+			<div
+				v-if="caseItem.tags && caseItem.tags.length > 0"
+				class="flex flex-wrap gap-1.5 mb-2"
+			>
+				<UBadge
+					v-for="tag in caseItem.tags"
+					:key="tag"
+					variant="outline"
+					class="text-xs px-2 py-0.5 cursor-pointer hover:bg-primary/10 hover:border-primary/30 motion-safe:transition-colors motion-reduce:transition-none relative z-10"
+					@click.stop.prevent="$emit('tag-click', tag)"
+				>
+					<Icon
+						name="lucide:tag"
+						class="h-3 w-3 mr-1"
+						aria-hidden="true"
+					/>
+					{{ tag }}
+				</UBadge>
+			</div>
+
+			<NuxtLink
+				:to="`/cases/${caseItem.slug}`"
+				class="absolute inset-0"
+				:aria-label="`View case ${caseItem.title}`"
+			/>
 		</UCardHeader>
 		<UCardFooter class="pt-0 mt-auto">
 			<div class="flex items-center justify-between w-full text-xs text-muted-foreground">
@@ -82,7 +104,12 @@ interface Props {
 	chatId?: number;
 }
 
+interface Emits {
+	(e: 'tag-click', tag: string): void;
+}
+
 defineProps<Props>();
+defineEmits<Emits>();
 
 // Utility functions
 const getDifficultyVariant = (difficulty: number | null) => {

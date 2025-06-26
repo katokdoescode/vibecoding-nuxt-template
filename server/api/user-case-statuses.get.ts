@@ -3,8 +3,9 @@ import { requireAuth } from '~/server/utils/requireAuth';
 import type { Database } from '~/database.types';
 
 export default defineEventHandler(async (event) => {
+	const user = await requireAuth(event);
+
 	try {
-		const user = await requireAuth(event);
 		const supabase = await serverSupabaseClient<Database>(event);
 
 		// Fetch all chats for the current user, ordered by creation date
@@ -26,20 +27,20 @@ export default defineEventHandler(async (event) => {
 		const caseStatuses: Record<string, { status: string; chatId: number }> = {};
 
 		if (chats) {
-			// Group chats by case_id
-			const chatsByCase = new Map<string, typeof chats>();
+			// Group chats by case_id using a plain object instead of Map
+			const chatsByCase: Record<string, typeof chats> = {};
 
 			chats.forEach((chat) => {
 				if (chat.case_id) {
-					if (!chatsByCase.has(chat.case_id)) {
-						chatsByCase.set(chat.case_id, []);
+					if (!chatsByCase[chat.case_id]) {
+						chatsByCase[chat.case_id] = [];
 					}
-					chatsByCase.get(chat.case_id)!.push(chat);
+					chatsByCase[chat.case_id].push(chat);
 				}
 			});
 
 			// For each case, determine the most relevant chat to show
-			chatsByCase.forEach((caseChats, caseId) => {
+			Object.entries(chatsByCase).forEach(([caseId, caseChats]) => {
 				// First, look for incomplete chats (created, in progress)
 				const incompleteChat = caseChats.find(chat =>
 					['created', 'in progress'].includes(chat.status),

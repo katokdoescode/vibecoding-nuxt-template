@@ -16,6 +16,7 @@ export type Database = {
 					name: string;
 					position: string | null;
 					prompt: string | null;
+					user_id: string | null;
 				};
 				Insert: {
 					created_at?: string;
@@ -23,6 +24,7 @@ export type Database = {
 					name: string;
 					position?: string | null;
 					prompt?: string | null;
+					user_id?: string | null;
 				};
 				Update: {
 					created_at?: string;
@@ -30,6 +32,7 @@ export type Database = {
 					name?: string;
 					position?: string | null;
 					prompt?: string | null;
+					user_id?: string | null;
 				};
 				Relationships: [];
 			};
@@ -42,10 +45,12 @@ export type Database = {
 					description: string | null;
 					difficulty: number | null;
 					id: string;
+					is_public: boolean;
 					slug: string;
 					story: string | null;
 					tags: string[];
 					title: string | null;
+					user_id: string | null;
 				};
 				Insert: {
 					agent?: string | null;
@@ -55,10 +60,12 @@ export type Database = {
 					description?: string | null;
 					difficulty?: number | null;
 					id?: string;
+					is_public?: boolean;
 					slug?: string;
 					story?: string | null;
 					tags?: string[];
 					title?: string | null;
+					user_id?: string | null;
 				};
 				Update: {
 					agent?: string | null;
@@ -68,10 +75,12 @@ export type Database = {
 					description?: string | null;
 					difficulty?: number | null;
 					id?: string;
+					is_public?: boolean;
 					slug?: string;
 					story?: string | null;
 					tags?: string[];
 					title?: string | null;
+					user_id?: string | null;
 				};
 				Relationships: [
 					{
