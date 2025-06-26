@@ -31,6 +31,9 @@ export default defineNuxtConfig({
 		optimizeDeps: {
 			include: ['debug'],
 		},
+		esbuild: {
+			drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+		},
 	},
 	eslint: {
 		config: {
