@@ -435,9 +435,12 @@ async function submitChat() {
 	isSubmitting.value = true;
 
 	try {
-		await $fetch(`/api/chats/${chat.value.id}/submit-case`, {
+		const response = await $fetch(`/api/chats/${chat.value.id}/submit-case`, {
 			method: 'POST',
 		});
+
+		chat.value = response;
+		await checkChatStatus();
 	}
 	catch (error) {
 		// Extract only serializable properties from error for logging

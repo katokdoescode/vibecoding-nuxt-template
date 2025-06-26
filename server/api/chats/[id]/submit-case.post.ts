@@ -1,11 +1,9 @@
 import { generateText } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { requireAuth } from '~/server/utils/requireAuth';
 import { serverSupabaseServiceRole } from '#supabase/server';
 import { caseAssessmentPrompt, replaceTemplateVars } from '~/server/utils/prompts';
-import type { Database } from '~/database.types';
-import type { Message } from '~/server/types';
+import type { Chat, Message } from '~/server/types';
 
 // Zod schema for assessment response from AI
 const assessmentResponseSchema = z.object({
@@ -25,25 +23,7 @@ const assessmentResponseSchema = z.object({
 	assessment_rationale: z.string(),
 });
 
-// Zod schema for the structured API response
-const submitCaseOutput = z.object({
-	success: z.boolean(),
-	assessment_percentage: z.number(),
-	status: z.string(),
-	detailed_feedback: z.object({
-		strengths: z.array(z.string()),
-		areas_for_improvement: z.array(z.string()),
-		growth_points: z.array(z.string()),
-		reached_goals: z.array(z.string()),
-		overall_performance: z.string(),
-	}),
-	message: z.string(),
-	timestamp: z.string(),
-});
-
-type SubmitCaseOutput = z.infer<typeof submitCaseOutput>;
-
-export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
+export default defineEventHandler(async (event): Promise<Chat> => {
 	const user = await requireAuth(event);
 	const chatIdParam = getRouterParam(event, 'id');
 
@@ -71,7 +51,9 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 		});
 	}
 
-	const supabase = serverSupabaseServiceRole<Database>(event);
+	const supabase = serverSupabaseServiceRole<{
+		chats: Chat[];
+	}>(event);
 
 	try {
 		// Get chat details with case, agent, and criteria information
@@ -131,17 +113,10 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 			conversationHistory: conversationHistory || 'No conversation history available.',
 		});
 
-		// Create OpenAI client
-		const openai = createOpenAI({
-			apiKey: openaiApiKey,
-		});
-
 		// Generate comprehensive assessment
 		const { text: assessmentResponse } = await generateText({
-			model: openai('gpt-4-turbo'),
+			model: 'openai/gpt-4o-mini',
 			prompt: assessmentPromptText,
-			maxTokens: 2000,
-			temperature: 0.3, // Lower temperature for more consistent assessment
 		});
 
 		// Parse the AI assessment response
@@ -181,11 +156,8 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 			newStatus = 'passed';
 		}
 
-		// Add assessment message to chat
-		const timestamp = new Date().toISOString();
-
 		// Update chat with assessment results
-		const { error: updateError } = await supabase
+		const { data: updateData, error: updateError } = await supabase
 			.from('chats')
 			.update({
 				status: newStatus,
@@ -193,7 +165,9 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 				learning_outcomes: assessmentData,
 				is_archived: true,
 			})
-			.eq('id', chatId);
+			.eq('id', chatId)
+			.select()
+			.single();
 
 		if (updateError) {
 			// Extract only serializable properties from error for logging
@@ -206,14 +180,7 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 		}
 
 		// Return structured response
-		return submitCaseOutput.parse({
-			success: true,
-			assessment_percentage: assessmentPercentage,
-			status: newStatus,
-			detailed_feedback: assessmentData.detailed_feedback,
-			message: 'Case successfully assessed and submitted!',
-			timestamp,
-		});
+		return updateData;
 	}
 	catch (error) {
 		// Extract only serializable properties from error for logging

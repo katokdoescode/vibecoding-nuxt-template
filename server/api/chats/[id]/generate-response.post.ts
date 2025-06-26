@@ -1,5 +1,4 @@
 import { generateText } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
 import { z } from 'zod';
 import { requireAuth } from '~/server/utils/requireAuth';
 import { serverSupabaseServiceRole } from '#supabase/server';
@@ -113,18 +112,11 @@ export default defineEventHandler(async (event): Promise<GenerateResponseOutput>
 			conversationHistory: conversationHistory || 'No previous conversation.',
 		});
 
-		// Create OpenAI client with API key
-		const openai = createOpenAI({
-			apiKey: openaiApiKey,
-		});
-
 		// Generate AI response
 		const { text: aiResponse } = await generateText({
-			model: openai('gpt-4-turbo'),
+			model: 'google/gemini-2.0-flash-001',
 			system: systemPrompt,
 			prompt: `User: ${userMessage}`,
-			maxTokens: 1000,
-			temperature: 0.7,
 		});
 
 		// Update the chat with the new agent message
