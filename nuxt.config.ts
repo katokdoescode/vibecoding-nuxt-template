@@ -34,6 +34,12 @@ export default defineNuxtConfig({
 		esbuild: {
 			drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
 		},
+		css: {
+			devSourcemap: true,
+		},
+		build: {
+			sourcemap: process.env.NODE_ENV === 'development',
+		},
 	},
 	eslint: {
 		config: {

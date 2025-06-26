@@ -16,7 +16,9 @@ export default defineEventHandler(async (event) => {
 			.order('created_at', { ascending: false });
 
 		if (error) {
-			console.error('Error fetching user case statuses:', error);
+			// Extract only serializable properties from error for logging
+			const errorMessage = error?.message || String(error);
+			console.error('Error fetching user case statuses:', { message: errorMessage });
 			throw createError({
 				statusCode: 500,
 				statusMessage: 'Failed to fetch case statuses',
@@ -69,7 +71,10 @@ export default defineEventHandler(async (event) => {
 		return caseStatuses;
 	}
 	catch (error) {
-		console.error('Error in user-case-statuses endpoint:', error);
+		// Extract only serializable properties from error for logging
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		const errorStatus = error && typeof error === 'object' && 'statusCode' in error ? error.statusCode : undefined;
+		console.error('Error in user-case-statuses endpoint:', { message: errorMessage, status: errorStatus });
 
 		// If it's already an H3 error, re-throw it
 		if (error && typeof error === 'object' && 'statusCode' in error) {

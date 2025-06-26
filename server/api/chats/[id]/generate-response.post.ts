@@ -78,7 +78,9 @@ export default defineEventHandler(async (event): Promise<GenerateResponseOutput>
 			.single();
 
 		if (chatError) {
-			console.error('Database error fetching chat:', chatError);
+			// Extract only serializable properties from error for logging
+			const errorMessage = chatError?.message || String(chatError);
+			console.error('Database error fetching chat:', { message: errorMessage });
 			throw createError({
 				statusCode: 500,
 				statusMessage: `Database error: ${chatError.message}`,
@@ -143,7 +145,9 @@ export default defineEventHandler(async (event): Promise<GenerateResponseOutput>
 			.eq('id', chatId);
 
 		if (updateError) {
-			console.error('Database error updating chat:', updateError);
+			// Extract only serializable properties from error for logging
+			const errorMessage = updateError?.message || String(updateError);
+			console.error('Database error updating chat:', { message: errorMessage });
 			throw createError({
 				statusCode: 500,
 				statusMessage: `Failed to save agent response: ${updateError.message}`,
@@ -159,7 +163,10 @@ export default defineEventHandler(async (event): Promise<GenerateResponseOutput>
 		});
 	}
 	catch (error) {
-		console.error('Error generating AI response:', error);
+		// Extract only serializable properties from error for logging
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		const errorStatus = error && typeof error === 'object' && 'statusCode' in error ? error.statusCode : undefined;
+		console.error('Error generating AI response:', { message: errorMessage, status: errorStatus });
 
 		// If it's already an H3 error, re-throw it
 		if (error && typeof error === 'object' && 'statusCode' in error) {

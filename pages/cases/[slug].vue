@@ -310,7 +310,10 @@ async function checkChatStatus() {
 		}
 	}
 	catch (error) {
-		console.error('Failed to check chat status:', error);
+		// Extract only serializable properties from error for logging
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		const errorStatus = error && typeof error === 'object' && 'status' in error ? error.status : undefined;
+		console.error('Failed to check chat status:', { message: errorMessage, status: errorStatus });
 	}
 }
 
@@ -336,7 +339,9 @@ async function createNewChat() {
 		await checkChatStatus();
 	}
 	catch (error) {
-		console.error('Failed to create new chat:', error);
+		// Extract only serializable properties from error for logging
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('Failed to create new chat:', { message: errorMessage });
 	}
 }
 
@@ -394,7 +399,9 @@ async function sendMessage(messageText?: string) {
 			// The UI will update through the Supabase realtime subscription
 		}
 		catch (error) {
-			console.error('Failed to generate AI response:', error);
+			// Extract only serializable properties from error for logging
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			console.error('Failed to generate AI response:', { message: errorMessage });
 			// If AI generation fails, show an error message
 			await $fetch(`/api/chats/${chat.value.id}/messages`, {
 				method: 'POST',
@@ -409,7 +416,9 @@ async function sendMessage(messageText?: string) {
 		}
 	}
 	catch (error) {
-		console.error('Failed to send message:', error);
+		// Extract only serializable properties from error for logging
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('Failed to send message:', { message: errorMessage });
 		if (!messageText) {
 			newMessage.value = text; // Restore message on error
 		}
@@ -431,7 +440,9 @@ async function submitChat() {
 		});
 	}
 	catch (error) {
-		console.error('Failed to submit and assess case:', error);
+		// Extract only serializable properties from error for logging
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('Failed to submit and assess case:', { message: errorMessage });
 		// You might want to show an error toast/notification here
 	}
 	finally {
@@ -449,7 +460,9 @@ async function startCaseAgain() {
 		await createNewChat();
 	}
 	catch (error) {
-		console.error('Failed to start case again:', error);
+		// Extract only serializable properties from error for logging
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('Failed to start case again:', { message: errorMessage });
 	}
 	finally {
 		isStartingAgain.value = false;

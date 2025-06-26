@@ -324,7 +324,9 @@ const { data: caseStatuses, pending: statusPending, refresh: refreshStatuses } =
 			return await $fetch<Record<string, { status: ChatStatus; chatId: number }>>('/api/user-case-statuses');
 		}
 		catch (error) {
-			console.warn('Failed to fetch user case statuses:', error);
+			// Extract only serializable properties from error for logging
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			console.warn('Failed to fetch user case statuses:', { message: errorMessage });
 			return null;
 		}
 	},

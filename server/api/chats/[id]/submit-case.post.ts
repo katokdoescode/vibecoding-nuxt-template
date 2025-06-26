@@ -158,7 +158,9 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 			assessmentData = assessmentResponseSchema.parse(rawAssessment);
 		}
 		catch (parseError) {
-			console.error('Failed to parse assessment JSON:', parseError);
+			// Extract only serializable properties from error for logging
+			const errorMessage = parseError instanceof Error ? parseError.message : String(parseError);
+			console.error('Failed to parse assessment JSON:', { message: errorMessage });
 			throw createError({
 				statusCode: 500,
 				statusMessage: 'Failed to parse assessment results',
@@ -194,7 +196,9 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 			.eq('id', chatId);
 
 		if (updateError) {
-			console.error('Failed to update chat with assessment:', updateError);
+			// Extract only serializable properties from error for logging
+			const errorMessage = updateError?.message || String(updateError);
+			console.error('Failed to update chat with assessment:', { message: errorMessage });
 			throw createError({
 				statusCode: 500,
 				statusMessage: 'Failed to save assessment results',
@@ -212,7 +216,10 @@ export default defineEventHandler(async (event): Promise<SubmitCaseOutput> => {
 		});
 	}
 	catch (error) {
-		console.error('Error in case assessment:', error);
+		// Extract only serializable properties from error for logging
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		const errorStatus = error && typeof error === 'object' && 'statusCode' in error ? error.statusCode : undefined;
+		console.error('Error in case assessment:', { message: errorMessage, status: errorStatus });
 
 		if (error && typeof error === 'object' && 'statusCode' in error) {
 			throw error;
