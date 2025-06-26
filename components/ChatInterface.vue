@@ -52,7 +52,7 @@
 			<ChatInput
 				v-model="inputMessage"
 				class="w-full"
-				:disabled="disabled || isSending"
+				:disabled="disabled"
 				:is-sending="isSending"
 				@send="handleSend"
 			/>
