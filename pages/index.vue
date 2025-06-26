@@ -16,14 +16,34 @@
 			aria-labelledby="filters-heading"
 			aria-describedby="filters-description"
 		>
-			<div class="bg-card border rounded-lg p-4 space-y-4">
+			<div
+				class="bg-card border rounded-lg px-4 py-2 flex flex-col gap-4"
+			>
 				<div class="flex items-center justify-between">
-					<h3
-						id="filters-heading"
-						class="text-sm font-medium text-muted-foreground py-2"
-					>
-						Filters
-					</h3>
+					<div class="flex items-center gap-2">
+						<h3
+							id="filters-heading"
+							class="text-sm font-medium text-muted-foreground py-2"
+						>
+							Filters
+						</h3>
+						<!-- Mobile collapse toggle button -->
+						<UButton
+							variant="ghost"
+							size="sm"
+							class="text-xs"
+							:aria-expanded="isFiltersExpanded"
+							aria-controls="filters-content"
+							aria-label="Toggle filters visibility"
+							@click="isFiltersExpanded = !isFiltersExpanded"
+						>
+							<Icon
+								:name="isFiltersExpanded ? 'lucide:chevron-up' : 'lucide:chevron-down'"
+								class="h-3 w-3"
+								aria-hidden="true"
+							/>
+						</UButton>
+					</div>
 					<UButton
 						v-if="hasActiveFilters"
 						variant="ghost"
@@ -59,115 +79,119 @@
 					{{ activeFiltersAnnouncement }}
 				</div>
 
-				<div
-					class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-					role="group"
-					aria-label="Filter controls"
-				>
-					<!-- Tags Filter -->
-					<div>
-						<label
-							id="tags-filter-label"
-							class="text-xs font-medium text-muted-foreground mb-2 block"
-						>
-							Tags
-						</label>
-						<FilterDropdown
-							v-model:selected-values="selectedTags"
-							label="Tags"
-							icon="lucide:tag"
-							:options="tagOptions"
-							placeholder="Select tags..."
-							aria-labelledby="tags-filter-label"
-							aria-describedby="tags-filter-help"
-							aria-controls="cases-grid"
-						/>
-						<div
-							id="tags-filter-help"
-							class="sr-only"
-						>
-							Filter cases by topic tags. You can select multiple tags.
+				<Transition name="dropdown">
+					<div
+						v-show="isFiltersExpanded"
+						id="filters-content"
+						class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-2"
+						role="group"
+						aria-label="Filter controls"
+					>
+						<!-- Tags Filter -->
+						<div>
+							<label
+								id="tags-filter-label"
+								class="text-xs font-medium text-muted-foreground mb-2 block"
+							>
+								Tags
+							</label>
+							<FilterDropdown
+								v-model:selected-values="selectedTags"
+								label="Tags"
+								icon="lucide:tag"
+								:options="tagOptions"
+								placeholder="Select tags..."
+								aria-labelledby="tags-filter-label"
+								aria-describedby="tags-filter-help"
+								aria-controls="cases-grid"
+							/>
+							<div
+								id="tags-filter-help"
+								class="sr-only"
+							>
+								Filter cases by topic tags. You can select multiple tags.
+							</div>
 						</div>
-					</div>
 
-					<!-- Status Filter -->
-					<div>
-						<label
-							id="status-filter-label"
-							class="text-xs font-medium text-muted-foreground mb-2 block"
-						>
-							Status
-						</label>
-						<FilterDropdown
-							v-model:selected-values="selectedStatuses"
-							label="Status"
-							icon="lucide:activity"
-							:options="statusOptions"
-							placeholder="Select statuses..."
-							aria-labelledby="status-filter-label"
-							aria-describedby="status-filter-help"
-							aria-controls="cases-grid"
-						/>
-						<div
-							id="status-filter-help"
-							class="sr-only"
-						>
-							Filter cases by your progress status. You can select multiple statuses.
+						<!-- Status Filter -->
+						<div>
+							<label
+								id="status-filter-label"
+								class="text-xs font-medium text-muted-foreground mb-2 block"
+							>
+								Status
+							</label>
+							<FilterDropdown
+								v-model:selected-values="selectedStatuses"
+								label="Status"
+								icon="lucide:activity"
+								:options="statusOptions"
+								placeholder="Select statuses..."
+								aria-labelledby="status-filter-label"
+								aria-describedby="status-filter-help"
+								aria-controls="cases-grid"
+							/>
+							<div
+								id="status-filter-help"
+								class="sr-only"
+							>
+								Filter cases by your progress status. You can select multiple statuses.
+							</div>
 						</div>
-					</div>
 
-					<!-- Ownership Filter -->
-					<div>
-						<label
-							id="ownership-filter-label"
-							class="text-xs font-medium text-muted-foreground mb-2 block"
-						>
-							Ownership
-						</label>
-						<FilterDropdown
-							v-model:selected-values="selectedOwnerships"
-							label="Ownership"
-							icon="lucide:users"
-							:options="ownershipOptions"
-							placeholder="Select ownership..."
-							aria-labelledby="ownership-filter-label"
-							aria-describedby="ownership-filter-help"
-							aria-controls="cases-grid"
-						/>
-						<div
-							id="ownership-filter-help"
-							class="sr-only"
-						>
-							Filter cases by who created them - your own cases or public cases.
+						<!-- Ownership Filter -->
+						<div>
+							<label
+								id="ownership-filter-label"
+								class="text-xs font-medium text-muted-foreground mb-2 block"
+							>
+								Ownership
+							</label>
+							<FilterDropdown
+								v-model:selected-values="selectedOwnerships"
+								label="Ownership"
+								icon="lucide:users"
+								:options="ownershipOptions"
+								placeholder="Select ownership..."
+								aria-labelledby="ownership-filter-label"
+								aria-describedby="ownership-filter-help"
+								aria-controls="cases-grid"
+							/>
+							<div
+								id="ownership-filter-help"
+								class="sr-only"
+							>
+								Filter cases by who created them - your own cases or public cases.
+							</div>
 						</div>
-					</div>
 
-					<!-- Difficulty Filter -->
-					<div>
-						<label
-							id="difficulty-filter-label"
-							class="text-xs font-medium text-muted-foreground mb-2 block"
-						>
-							Difficulty
-						</label>
-						<FilterDropdown
-							v-model:selected-values="selectedDifficulties"
-							label="Difficulty"
-							icon="lucide:trending-up"
-							:options="difficultyOptions"
-							placeholder="Select difficulty..."
-							aria-labelledby="difficulty-filter-label"
-							aria-describedby="difficulty-filter-help"
-							aria-controls="cases-grid"
-						/>
-						<div
-							id="difficulty-filter-help"
-							class="sr-only"
-						>
-							Filter cases by difficulty level. You can select multiple difficulties.
+						<!-- Difficulty Filter -->
+						<div>
+							<label
+								id="difficulty-filter-label"
+								class="text-xs font-medium text-muted-foreground mb-2 block"
+							>
+								Difficulty
+							</label>
+							<FilterDropdown
+								v-model:selected-values="selectedDifficulties"
+								label="Difficulty"
+								icon="lucide:trending-up"
+								:options="difficultyOptions"
+								placeholder="Select difficulty..."
+								aria-labelledby="difficulty-filter-label"
+								aria-describedby="difficulty-filter-help"
+								aria-controls="cases-grid"
+							/>
+							<div
+								id="difficulty-filter-help"
+								class="sr-only"
+							>
+								Filter cases by difficulty level. You can select multiple difficulties.
+							</div>
 						</div>
 					</div>
-				</div>
+				</Transition>
 			</div>
 		</div>
 
@@ -287,6 +311,9 @@ const selectedTags = ref<string[]>([]);
 const selectedStatuses = ref<string[]>([]);
 const selectedOwnerships = ref<string[]>([]);
 const selectedDifficulties = ref<string[]>([]);
+
+// Mobile filter collapse state
+const isFiltersExpanded = ref(false);
 
 // Fetch cases and user statuses
 const { data: cases, pending } = await useAsyncData('cases', () => {
@@ -491,6 +518,14 @@ const hasActiveFilters = computed(() => {
 		|| selectedDifficulties.value.length > 0;
 });
 
+// Auto-expand filters on mobile when filters become active
+watch(hasActiveFilters, (newValue) => {
+	if (newValue) {
+		// Expand filters when any filter is applied
+		isFiltersExpanded.value = true;
+	}
+});
+
 // ARIA announcements for screen readers
 const activeFiltersAnnouncement = computed(() => {
 	const parts = [];
@@ -518,6 +553,8 @@ const activeFiltersAnnouncement = computed(() => {
 const handleTagClick = (tag: string) => {
 	if (!selectedTags.value.includes(tag)) {
 		selectedTags.value.push(tag);
+		// Auto-expand filters on mobile when a filter is applied
+		isFiltersExpanded.value = true;
 	}
 };
 
@@ -642,6 +679,22 @@ const getDifficultyCount = (difficulty: string) => {
 		opacity: 0;
 		transform: translateY(10px);
 	}
+
+	.dropdown-enter-active,
+.dropdown-leave-active {
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	transform-origin: top;
+}
+
+.dropdown-enter-from {
+	opacity: 0;
+	transform: scaleY(0.8) translateY(-10px);
+}
+
+.dropdown-leave-to {
+	opacity: 0;
+	transform: scaleY(0.8) translateY(-10px);
+}
 }
 
 /* Reduced motion: instant transitions */
@@ -649,6 +702,8 @@ const getDifficultyCount = (difficulty: string) => {
 	.card-enter-active,
 	.card-leave-active,
 	.card-move,
+	.dropdown-enter-active,
+	.dropdown-leave-active,
 	.fade-enter-active,
 	.fade-leave-active {
 		transition: none !important;
