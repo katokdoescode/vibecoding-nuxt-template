@@ -76,3 +76,5 @@ export type ExtendedChat = Omit<Chat, 'case_id' | 'agent_id' | 'user_id'> & {
 	agent_id: Agent;
 	user_id: User;
 };
+
+export type Subscription = Database['public']['Tables']['subscriptions']['Row'];

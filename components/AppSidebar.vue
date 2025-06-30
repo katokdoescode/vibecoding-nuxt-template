@@ -24,13 +24,23 @@
 				</USheetHeader>
 				<ColorMode />
 				<div class="mt-6 space-y-4">
-					<div v-if="!user">
+					<div
+						v-if="!user"
+						class="space-y-2"
+					>
 						<UButton
 							as="a"
 							href="/login"
 							class="w-full"
 						>
 							Login
+						</UButton>
+						<UButton
+							as="a"
+							href="/pricing"
+							class="w-full"
+						>
+							Upgrade to Pro
 						</UButton>
 					</div>
 					<div
@@ -44,11 +54,43 @@
 								</UAvatarFallback>
 							</UAvatar>
 							<div class="flex-1 min-w-0">
-								<p class="text-sm font-medium truncate">
-									{{ user.email }}
+								<div class="flex items-center gap-2">
+									<p class="text-sm font-medium truncate">
+										{{ user.email }}
+									</p>
+									<UBadge
+										v-if="isPro"
+										variant="secondary"
+										class="text-xs"
+									>
+										Pro
+									</UBadge>
+								</div>
+								<p
+									v-if="planDisplayName"
+									class="text-xs text-muted-foreground"
+								>
+									{{ planDisplayName }} Plan
 								</p>
 							</div>
 						</div>
+
+						<!-- Navigation Links -->
+						<div class="space-y-2">
+							<UButton
+								as="a"
+								href="/pricing"
+								variant="outline"
+								class="w-full justify-start"
+							>
+								<Icon
+									name="lucide:credit-card"
+									class="h-4 w-4 mr-2"
+								/>
+								{{ isPro ? 'Manage Subscription' : 'Upgrade to Pro' }}
+							</UButton>
+						</div>
+
 						<UButton
 							as="a"
 							href="/logout"
@@ -67,6 +109,9 @@
 <script setup lang="ts">
 // Auth composable
 const user = useSupabaseUser();
+
+// Subscription composable
+const { isPro, planDisplayName } = useSubscription();
 
 // Side panel state
 const sidePanelOpen = ref(false);

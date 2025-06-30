@@ -7,6 +7,31 @@ export type Json =
 	| Json[];
 
 export type Database = {
+	graphql_public: {
+		Tables: {
+			[_ in never]: never
+		};
+		Views: {
+			[_ in never]: never
+		};
+		Functions: {
+			graphql: {
+				Args: {
+					operationName?: string;
+					query?: string;
+					variables?: Json;
+					extensions?: Json;
+				};
+				Returns: Json;
+			};
+		};
+		Enums: {
+			[_ in never]: never
+		};
+		CompositeTypes: {
+			[_ in never]: never
+		};
+	};
 	public: {
 		Tables: {
 			agents: {
@@ -156,6 +181,48 @@ export type Database = {
 					},
 				];
 			};
+			subscriptions: {
+				Row: {
+					created_at: string;
+					current_period_end: string | null;
+					current_period_start: string | null;
+					id: string;
+					plan: Database['public']['Enums']['subscription_type'];
+					status: string;
+					stripe_customer_id: string | null;
+					stripe_price_id: string | null;
+					stripe_subscription_id: string | null;
+					updated_at: string;
+					user_id: string;
+				};
+				Insert: {
+					created_at?: string;
+					current_period_end?: string | null;
+					current_period_start?: string | null;
+					id?: string;
+					plan?: Database['public']['Enums']['subscription_type'];
+					status?: string;
+					stripe_customer_id?: string | null;
+					stripe_price_id?: string | null;
+					stripe_subscription_id?: string | null;
+					updated_at?: string;
+					user_id: string;
+				};
+				Update: {
+					created_at?: string;
+					current_period_end?: string | null;
+					current_period_start?: string | null;
+					id?: string;
+					plan?: Database['public']['Enums']['subscription_type'];
+					status?: string;
+					stripe_customer_id?: string | null;
+					stripe_price_id?: string | null;
+					stripe_subscription_id?: string | null;
+					updated_at?: string;
+					user_id?: string;
+				};
+				Relationships: [];
+			};
 		};
 		Views: {
 			[_ in never]: never
@@ -278,6 +345,9 @@ export type CompositeTypes<
 		: never;
 
 export const Constants = {
+	graphql_public: {
+		Enums: {},
+	},
 	public: {
 		Enums: {
 			subscription_type: ['free', 'pro'],

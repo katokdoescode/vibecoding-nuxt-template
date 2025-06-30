@@ -22,6 +22,12 @@ export default defineNuxtConfig({
 	},
 	runtimeConfig: {
 		openaiApiKey: process.env.OPENAI_API_KEY,
+		stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+		stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+		public: {
+			stripePriceId: process.env.STRIPE_PRICE_ID,
+			stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+		},
 	},
 	compatibilityDate: '2025-05-15',
 	vite: {
