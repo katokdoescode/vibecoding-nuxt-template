@@ -6,7 +6,6 @@
 .cache
 dist
 .vscode
-.cursor
 
 # Node dependencies
 node_modules

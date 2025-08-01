@@ -1,0 +1,333 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Developer Guidelines for Vibecoding Nuxt Starter
+
+## Tech Stack
+- **Nuxt 3** (Vue 3, TypeScript) — Main framework
+- **Supabase** (auth, backend) — Database and authentication
+- **AI SDK (Vercel)** — TypeScript toolkit for AI features
+- **OpenAI API** (AI features) — Chat completions with GPT-4 Turbo
+- **Tailwind CSS v4** (utility-first styling) — Modern CSS framework
+- **ShadCN Vue** (UI components) — Component library with 'U' prefix
+- **@nuxt/icon** — Icon system using Lucide icons
+- **@nuxt/image** — Optimized image handling
+- **@nuxt/fonts** — Font optimization
+- **@nuxtjs/mdc** — Markdown component support
+- **ESLint** — Code linting with auto-fix
+- **Lefthook** — Git hooks for pre-commit linting
+
+## Nuxt Modules Configuration
+The project uses these Nuxt modules (configured in `nuxt.config.ts`):
+- `@nuxt/eslint` — ESLint integration
+- `@nuxt/image` — Image optimization
+- `@nuxt/fonts` — Font management
+- `@nuxt/scripts` — Script loading
+- `@nuxtjs/supabase` — Supabase integration
+- `nuxt-mcp` — MCP protocol support
+- `shadcn-nuxt` — ShadCN component integration
+- `@nuxt/icon` — Icon management with Lucide collection
+- `@nuxtjs/mdc` — Markdown component support
+
+## Project Structure
+- `components/` — UI components (use ShadCN Vue components, Tailwind for styling)
+- `components/ui/` — ShadCN components with 'U' prefix (UCard, UButton, etc.)
+- `composables/` — Reusable logic (useAuth, useUser for auth management)
+- `layouts/` — App layouts (e.g., `default.vue`, `authorized.vue`)
+- `middleware/` — Route guards (e.g., `auth.ts` for authentication)
+- `pages/` — App pages (auto-routed)
+- `server/api/` — API endpoints with nested structure
+- `server/utils/` — Server utilities (requireAuth, prompts)
+- `server/types.ts` — Extended server types
+- `database.types.ts` — Auto-generated Supabase types
+- `lib/utils.ts` — Utility functions (cn function for class merging)
+- `assets/css/` — CSS files (tailwind.css)
+- `public/` — Public static files
+
+## Supabase Client Usage
+
+### Client Access Patterns
+The project uses `@nuxtjs/supabase` module which provides auto-imported composables:
+
+```typescript
+// Client-side database operations
+const supabase = useSupabaseClient() // Auto-imported
+const user = useSupabaseUser() // Auto-imported, reactive user state
+
+// Server-side operations (API routes) - ALWAYS await serverSupabaseClient
+const supabase = await serverSupabaseClient<{
+	cases: Cases
+}>(event) // Import required, awaited
+const user = await requireAuth(event) // Custom auth utility (not serverSupabaseUser)
+```
+
+### Authentication Integration
+
+```typescript
+// Use requireAuth utility instead of serverSupabaseUser
+import { requireAuth } from '~/server/utils/requireAuth'
+
+export default defineEventHandler(async (event) => {
+  const user = await requireAuth(event) // Throws 401 if not authenticated
+
+  // User is guaranteed to exist after requireAuth
+  const { data } = await supabase
+    .from('chats')
+    .select('*')
+    .eq('user_id', user.id) // user.id is available
+})
+```
+
+### Error Handling Patterns
+
+```typescript
+// Standard H3 error handling
+const { data: users, error } = await supabase
+  .from('users')
+  .select('*')
+
+if (error) {
+  console.error('Error fetching users:', { message: error.message })
+  throw createError({
+    statusCode: 500,
+    statusMessage: 'Failed to fetch users'
+  })
+}
+```
+
+### Type Safety
+
+```typescript
+// Import specific types from server/types.ts
+import type { User } from '~/server/types'
+
+// Typed Supabase client with specific types (NOT Database type)
+const supabase = await serverSupabaseClient<{
+  users: User[];
+}>(event)
+
+// Or for chat operations
+const supabase = await serverSupabaseClient<{
+  user: User;
+}>(event)
+
+// Use custom types for complex data
+const updateData: Partial<User> = {
+  name: 'John Doe',
+  email: 'john.doe@example.com',
+  role: 'user',
+  status: 'active',
+}
+```
+
+### Best Practices
+
+- **Always await serverSupabaseClient**: Use `await serverSupabaseClient<{ specificType: Type[] }>(event)`
+- **Use requireAuth utility**: Import and use `requireAuth(event)` instead of `serverSupabaseUser`
+- **Verify user ownership**: Always add `.eq('user_id', user.id)` for user-specific data
+- **Use custom types**: Import types from `~/server/types` for complex data structures
+- **Return single records**: Use `.select().single()` when expecting one record
+- **Handle JSON arrays**: Cast to proper types when working with JSON columns
+- **Log errors properly**: Extract serializable properties for logging
+- **Use H3 errors**: Always use `createError()` from H3 for consistent error responses
+
+## Icons System (@nuxt/icon)
+- Uses **Lucide** icon collection exclusively
+- Icon naming patterns:
+  - `lucide:icon-name` (e.g., `lucide:clock`, `lucide:x`)
+- Usage: `<Icon name="lucide:clock" />` or `<Icon name="i-lucide-arrow-left" />`
+- Icons are server-bundled for performance
+- Always include `aria-hidden="true"` for decorative icons
+- Use semantic sizing classes: `h-4 w-4`, `h-5 w-5`, etc.
+
+## ShadCN Vue Configuration
+- **Style**: "new-york" theme
+- **Prefix**: "U" (UCard, UButton, UInput, etc.)
+- **Base Color**: "zinc"
+- **CSS Variables**: enabled
+- **Icon Library**: Lucide (configured in components.json)
+- **TypeScript**: fully enabled
+
+## Authentication Patterns
+Use the `useAuth()` composable for all authentication:
+```typescript
+const {
+  signInWithEmail,
+  signUp,
+  signInWithGoogle,
+  signOut,
+  isAuthenticated,
+  user
+} = useAuth();
+```
+
+**Authentication Methods:**
+- `signInWithEmail(email, password)` — Email/password login
+- `signUp(email, password, confirmPassword)` — User registration
+- `signInWithGoogle()` — OAuth with Google
+- `signOut()` — Clear all auth state
+
+**Auth Guards:**
+- Use `auth.ts` middleware for protected routes
+- Use `requireAuth()` utility for protected API endpoints
+
+## Component Conventions
+- **Loading States**: Use spinning icons with `animate-spin` class
+- **Hover Effects**: Use `group` and `group-hover:` patterns for interactive cards
+- **Link Overlays**: Use absolute positioned NuxtLink for card clickability
+
+## API Patterns
+**Protected Routes:**
+```typescript
+import { requireAuth } from '~/server/utils/requireAuth';
+
+export default defineEventHandler(async (event) => {
+  const user = await requireAuth(event);
+  // Route logic here
+});
+```
+
+## Styling Conventions
+- **Tailwind Only**: No custom CSS unless absolutely necessary
+- **Responsive**: All components adapt to screen sizes automatically
+- **Color Scheme**: Use semantic colors (primary, secondary, muted-foreground, destructive)
+- **Spacing**: Consistent spacing scale (p-4, mb-6, etc.)
+- **Typography**: Use font-weight classes (font-medium, font-semibold, font-bold)
+
+## Utility Functions
+- **cn()**: Class name utility combining clsx and tailwind-merge
+  ```typescript
+  import { cn } from '~/lib/utils';
+  // Usage: cn('base-classes', condition && 'conditional-classes')
+  ```
+
+## TypeScript Conventions
+- **Never use**: `any`, `as`, or `as any`
+- **Import types**: Use `import type` for type-only imports
+- **Database Types**: Import from `~/server/types` or `~/database.types`
+- **Component Props**: Always define explicit Props interfaces
+- **Event Handlers**: Properly type event parameters
+- **AI Validation**: Use Zod schemas for AI endpoint input validation
+
+## AI Features Integration
+
+### AI SDK Configuration
+- **Framework**: Vercel AI Gateway SDK
+- **Dependencies**: `ai`, `@ai-sdk/openai`, `zod`
+
+### AI Gateway SDK Import Pattern
+```typescript
+import { generateText } from 'ai';
+
+// Generate contextual response
+const { text } = await generateText({
+  model: 'xai/grok-3',
+  system: systemPrompt,
+  prompt: userInput,
+  maxTokens: 1000,
+  temperature: 0.7,
+});
+```
+
+### Additional AI Endpoints
+- Basic prompts available in `server/utils/prompts.ts`
+
+### AI Best Practices
+- Always validate user input with Zod schemas
+- Use proper TypeScript types from `~/server/types.ts`
+- Handle AI generation errors gracefully
+- Maintain conversation context for coherent responses
+- Use appropriate temperature settings (0.7 for balanced creativity)
+- Set reasonable token limits (1000 tokens for responses)
+
+## Scripts & Development
+- `npm run dev` — Start development server
+- `npm run build` — Build for production
+- `npm run preview` — Preview production build
+- `npm run lint` — Auto-fix lint issues with ESLint
+
+## Git Hooks (Lefthook)
+- Pre-commit: ESLint auto-fix runs on staged files
+- Configured in `lefthook.yml`
+
+## Best Practices
+- Follow Nuxt 3 and Vue 3 composition API conventions
+- Use environment variables via `.env` (see `.env.example`)
+- Keep UI/UX clean, modern, and accessible
+- Use only packages listed in `package.json`
+- Import paths: Use `~/` for root, `@/` for components
+- Remove unused variables and imports (ESLint enforced)
+- Use composables for shared logic
+- Keep code modular with clear separation of concerns
+
+## Nuxt Auto-Imports
+Nuxt 3 automatically imports components, composables, and utilities. **No manual imports needed** for:
+
+### Auto-Imported Components
+- **ShadCN UI components**: `UCard`, `UButton`, `UInput`, etc. (directly available)
+- **Custom components**: All components from `components/` directory
+- **Nuxt built-ins**: `NuxtLink`, `NuxtImg`, `Icon`, etc.
+
+### Auto-Imported Composables
+- **Custom composables**: `useAuth()`, `useUser()` from `composables/` directory
+- **Nuxt composables**: `useState()`, `useFetch()`, `navigateTo()`, etc.
+- **Utility functions**: `cn()` from `lib/utils.ts`
+
+### Manual Imports Still Required
+```typescript
+// External library imports (AI SDK, third-party packages)
+import { generateText } from 'ai'
+import { z } from 'zod'
+
+// Type-only imports (always explicit)
+import type { Message, Chat } from '~/server/types'
+
+// Server-side imports (in API routes)
+import { requireAuth } from '~/server/utils/requireAuth'
+```
+
+
+### Usage Examples (No Imports Needed)
+```vue
+<template>
+  <!-- ShadCN components auto-imported -->
+  <UCard>
+    <UCardHeader>
+      <UCardTitle>Auto-imported Components</UCardTitle>
+    </UCardHeader>
+    <UCardContent>
+      <!-- Custom components auto-imported -->
+      <CaseCard :case="selectedCase" />
+      <!-- Nuxt components auto-imported -->
+      <NuxtLink to="/cases">
+        <UButton>
+          <!-- Icons auto-imported -->
+          <Icon name="lucide:arrow-left" />
+          Back to Cases
+        </UButton>
+      </NuxtLink>
+    </UCardContent>
+  </UCard>
+</template>
+
+<script setup lang="ts">
+// Composables auto-imported (no import needed)
+const { user, isAuthenticated } = useAuth()
+const { cn } = useUtils() // if exposed from lib/utils.ts
+
+// Utilities auto-imported
+const currentCase = useState('current-case')
+await navigateTo('/dashboard')
+</script>
+```
+
+## Documentation References
+- [Nuxt 3 Documentation](mdc:https:/nuxt.com/docs)
+- [AI SDK Documentation](mdc:https:/ai-sdk.dev/docs)
+- [OpenAI API Documentation](mdc:https:/platform.openai.com/docs)
+- [ShadCN Vue Documentation](mdc:https:/shadcn-vue.com)
+- [Tailwind CSS v4](mdc:https:/tailwindcss.com)
+- [Supabase Documentation](mdc:https:/supabase.com/docs)
+- [Lucide Icons](mdc:https:/lucide.dev)
