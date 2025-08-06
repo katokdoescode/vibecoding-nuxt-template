@@ -1,7 +1,8 @@
 <template>
-  <UApp>
+  <main>
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-  </UApp>
+    <footer>Copyright</footer>
+  </main>
 </template>
