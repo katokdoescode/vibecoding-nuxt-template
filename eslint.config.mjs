@@ -19,5 +19,6 @@ export default withNuxt({
     'bun.lockb',
     'bun.lock',
     'bun.lockb',
+    '.env',
   ],
 });
