@@ -28,9 +28,9 @@
         </div>
 
         <div class="space-y-2">
-          <h4 class="text-sm font-medium">
+          <h3 class="text-sm font-medium">
             Your Privacy
-          </h4>
+          </h3>
           <p class="text-sm text-muted-foreground">
             For more information about how we handle your data, please read our
             <NuxtLink
